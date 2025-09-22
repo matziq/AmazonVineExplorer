@@ -101,7 +101,7 @@ const database = new DB_HANDLER(DATABASE_NAME, DATABASE_OBJECT_STORE_NAME, DATAB
                 <span class="a-button a-button-primary vvp-details-btn" id="a-autoid-0">
                 <span class="a-button-inner">
                 <input data-asin="${_data.asin}" data-is-parent-asin="${_data.isParentAsin}" data-recommendation-id="${_data.recommendationId}" data-recommendation-type="VENDOR_TARGETED" class="a-button-input" type="submit" aria-labelledby="a-autoid-0-announce">
-                <span class="a-button-text" aria-hidden="true" id="a-autoid-0-announce">Weitere Details
+                <span class="a-button-text" aria-hidden="true" id="a-autoid-0-announce">More details
                 </span>
                 </span>
                 </span>
@@ -123,8 +123,8 @@ const database = new DB_HANDLER(DATABASE_NAME, DATABASE_OBJECT_STORE_NAME, DATAB
             addAVESettingsMenu();
             waitForHtmlElmement('.vvp-details-btn', () => {
                 if (_execLock) return;
-                _execLock = true;
-                addBranding();
+                            const _topLine = _tilesContainer.getElementsByTagName('p')[0];
+                            _topLine.innerHTML = `<p>Showing <strong>${_fastCount}</strong> of <strong>${_productArrayLength}</strong> results</p>`
                 detectCurrentPageType();
 
                 let _tileCount = 0;
@@ -459,13 +459,13 @@ function addLeftSideButtons(forceClean) {
 
     _nodesContainer.appendChild(document.createElement('p')); // A bit of Space above our Buttons
 
-    const _setAllSeenBtn = createButton('Aktuelle Seite als gesehen markieren','ave-btn-allseen',  `width: 240px; background-color: ${SETTINGS.BtnColorMarkCurrSiteAsSeen};`, () => {
+    const _setAllSeenBtn = createButton('Mark current page as seen','ave-btn-allseen',  `width: 240px; background-color: ${SETTINGS.BtnColorMarkCurrSiteAsSeen};`, () => {
 
         if (SETTINGS.DebugLevel > 10) console.log('Clicked All Seen Button');
         markAllCurrentSiteProductsAsSeen();
     });
 
-    const _setAllSeenDBBtn = createButton('Alle als gesehen markieren','ave-btn-db-allseen', `left: 0; width: 240px; background-color: ${SETTINGS.BtnColorMarkAllAsSeen};`, () => {
+    const _setAllSeenDBBtn = createButton('Mark all as seen','ave-btn-db-allseen', `left: 0; width: 240px; background-color: ${SETTINGS.BtnColorMarkAllAsSeen};`, () => {
 
         if (SETTINGS.DebugLevel > 10) console.log('Clicked All Seen Button');
         setTimeout(() => {
@@ -480,7 +480,7 @@ function addLeftSideButtons(forceClean) {
         }, 30);
     });
 
-    const _backToTopBtn = createButton('Zum Seitenanfang','ave-btn-backtotop',  `width: 240px; background-color: ${SETTINGS.BtnColorBackToTop};`, () => {
+    const _backToTopBtn = createButton('Back to top','ave-btn-backtotop',  `width: 240px; background-color: ${SETTINGS.BtnColorBackToTop};`, () => {
 
         if (SETTINGS.DebugLevel > 10) console.log('Clicked back to Top Button');
         window.scrollTo(0, 0);
@@ -557,8 +557,8 @@ function createButton(text, id, style, clickHandler){
     _btnSpan.addEventListener('click', (ev) => {
         if (clickHandler) {
             clickHandler(ev);
-        } else {
-            alert('\r\nHier gibt es nix zu sehen.\r\nZumindest noch nicht :P');
+            } else {
+            alert('\r\nNothing to see here.\r\nAt least not yet :P');
         }
     });
     return _btnSpan;
@@ -588,7 +588,7 @@ async function createTileFromProduct(product, btnID, cb) {
                 <span class="a-button a-button-primary vvp-details-btn" id="a-autoid-${_btnAutoID}">
                     <span class="a-button-inner">
                         <input data-asin="${product.data_asin}" data-is-parent-asin="${product.data_asin_is_parent}" data-recommendation-id="${product.data_recommendation_id}" data-recommendation-type="${product.data_recommendation_type}" class="a-button-input" type="submit" aria-labelledby="a-autoid-${_btnAutoID}-announce">
-                        <span class="a-button-text" aria-hidden="true" id="a-autoid-${_btnAutoID}-announce">Weitere Details</span>
+                        <span class="a-button-text" aria-hidden="true" id="a-autoid-${_btnAutoID}-announce">More details</span>
                     </span>
                 </span>
             </div>
@@ -647,16 +647,16 @@ function shareEventHandlerClick(event, _data){
 
         switch(queueParam){
             case PAGETYPE.OROGINAL_POTLUCK:
-                queueParam = "Mein FSE"
-                page = `Seite: ${pageParam}`
+                queueParam = "Potluck (FSE)"
+                page = `Page: ${pageParam}`
                 break;
             case PAGETYPE.ORIGINAL_LAST_CHANCE:
-                queueParam = "Verfügbar für Alle"
-                page = `Seite: ${pageParam}`
+                queueParam = "Available for all"
+                page = `Page: ${pageParam}`
                 break;
             case PAGETYPE.ORIGINAL_SELLER:
-                queueParam = "Zusätzliche Artikel"
-                page = `Seite: ${pageParam}`
+                queueParam = "Additional items"
+                page = `Page: ${pageParam}`
                 break;
             default:
                 queueParam = ""
@@ -692,17 +692,15 @@ ${newUrl}`
         avePopup.style.transition = "opacity 0.2s ease-in-out";
 
         navigator.clipboard.writeText(shareText).then(() => {
-            avePopup.innerText = "Text wurde in die Zwischenablage kopiert."
+            avePopup.innerText = "Text copied to clipboard."
         }).catch(err => {
-            avePopup.innerText = `Fehler beim Kopieren in die Zwischenablage: ${err}`
+            avePopup.innerText = `Error copying to clipboard: ${err}`
         });
-
-        document.body.appendChild(avePopup);
 
         // Timeout 0ms for the next Event Cycle -> Give time to render
         setTimeout(()=> {
-                avePopup.style.opacity = '1';
-            }, 0);
+            avePopup.style.opacity = '1';
+        }, 0);
 
         setTimeout(()=> {
             avePopup.style.opacity = '0';
@@ -781,8 +779,8 @@ async function createProductSite(siteType, productArray, cb) {
 
     // Edit Top Line
     if (_tilesContainer) {
-        const _topLine = _tilesContainer.getElementsByTagName('p')[0];
-        _topLine.innerHTML = `<p>Anzeigen von <strong>${_fastCount}</strong> von <strong>${_productArrayLength}</strong> Ergebnissen</p>`
+    const _topLine = _tilesContainer.getElementsByTagName('p')[0];
+    _topLine.innerHTML = `<p>Showing <strong>${_fastCount}</strong> of <strong>${_productArrayLength}</strong> results</p>`
     }
 
     const _tilesGrid = document.getElementById('vvp-items-grid');
@@ -1172,7 +1170,7 @@ function addAveSettingsTab(){
         _upperSettingsButton.id = 'vvp-ave-settings-tab';
         _upperSettingsButton.classList = 'a-tab-heading';
         _upperSettingsButton.role = 'presentation';
-        _upperSettingsButton.innerHTML += `<a role="tab" aria-selected="false" tabindex="-1">AVE Einstellungen</a>`;
+    _upperSettingsButton.innerHTML += `<a role="tab" aria-selected="false" tabindex="-1">AVE Settings</a>`;
 
         _upperSettingsButton.addEventListener('click',function(){
             const _upperButtons = document.body.querySelectorAll('.a-tab-container.vvp-tab-set-container > ul > li');
@@ -1458,7 +1456,7 @@ font-weight: bold;
 }
     </style>
 
-    <div id="ave-settings-header" style="margin-bottom: 10px"><h3>Einstellungen ${AVE_TITLE} - Version ${AVE_VERSION}</h3></div>
+    <div id="ave-settings-header" style="margin-bottom: 10px"><h3>Settings ${AVE_TITLE} - Version ${AVE_VERSION}</h3></div>
     <div id="ave-settings-container" class="ave-settings-container">
 
 
@@ -1720,7 +1718,7 @@ function addOverlays() { // Old Settings Code
     <div style="background-color: white;border-radius: 8px;width: 50%;min-width: 250px;height: 75%;overflow: hidden;">
       <div id="settingsInner"width: 100%; height: 100%;"> <!--- Inner Start -->
         <div id="settingsNav" style="background-color: #F0F2F2;border-bottom: 1px solid #D5D9D9;display: flex;height: 50px;align-items: center;padding: 0 24px;"> <!--- Nav Start -->
-         <div style="color: #444;font-size: 16px;font-weight: 700;">Amazon Vine Explorer Einstellungen</div>
+         <div style="color: #444;font-size: 16px;font-weight: 700;">Amazon Vine Explorer Settings</div>
          <div style="color: #444;margin-left: auto;width: 50px;height: 50px;display: flex;justify-content: center;align-items: center;font-weight: 600;font-size: larger;cursor: pointer;transform: translate(50%, 0);">
            <i class="a-icon a-icon-close"></i>
          </div>
@@ -2408,7 +2406,7 @@ function updateNewProductsBtn() {
                 oldCountOfNewItems = _prodArrLength;
                 lastDesktopNotifikationTimestamp = unixTimeStamp();
 
-                desktopNotifikation(`Amazon Vine Explorer - ${AVE_VERSION}` , `Es wurden ${_prodArrLength} neue Vine Produkte gefunden`);
+                desktopNotifikation(`Amazon Vine Explorer - ${AVE_VERSION}` , `${_prodArrLength} new Vine products found`);
             }
         }
     })
@@ -2623,9 +2621,9 @@ function init(hasTiles) {
 
     const _searchbarContainer = document.getElementById('vvp-items-button-container');
 
-    _searchbarContainer.appendChild(createNavButton('ave-btn-favorites', 'Alle Produkte', '', SETTINGS.BtnColorAllProducts, () => {createNewSite(PAGETYPE.ALL);}));
-    _searchbarContainer.appendChild(createNavButton('ave-btn-favorites', 'Favoriten', '', SETTINGS.BtnColorFavorites, () => {createNewSite(PAGETYPE.FAVORITES);}));
-    _searchbarContainer.appendChild(createNavButton('ave-btn-list-new', 'Neue Einträge', 'ave-new-items-btn', SETTINGS.BtnColorNewProducts, () => {createNewSite(PAGETYPE.NEW_ITEMS);}, 'ave-new-items-btn-badge', '-'));
+    _searchbarContainer.appendChild(createNavButton('ave-btn-favorites', 'All products', '', SETTINGS.BtnColorAllProducts, () => {createNewSite(PAGETYPE.ALL);}));
+    _searchbarContainer.appendChild(createNavButton('ave-btn-favorites', 'Favorites', '', SETTINGS.BtnColorFavorites, () => {createNewSite(PAGETYPE.FAVORITES);}));
+    _searchbarContainer.appendChild(createNavButton('ave-btn-list-new', 'New entries', 'ave-new-items-btn', SETTINGS.BtnColorNewProducts, () => {createNewSite(PAGETYPE.NEW_ITEMS);}, 'ave-new-items-btn-badge', '-'));
 
     updateNewProductsBtn();
 
@@ -2634,11 +2632,11 @@ function init(hasTiles) {
     const _searchBarSpan = document.createElement('span');
     _searchBarSpan.setAttribute('class', 'ave-search-container');
     _searchBarSpan.style.cssText = `margin: 0.5em;`;
-    // _searchBarSpan.innerHTML = `<input type="text" style="width: 30em;" placeholder="Suche Vine Produkte" name="ave-search">`;
+    // _searchBarSpan.innerHTML = `<input type="text" style="width: 30em;" placeholder="Search Vine products" name="ave-search">`;
 
     const _searchBarInput = document.createElement('input');
     _searchBarInput.setAttribute('type', 'search');
-    _searchBarInput.setAttribute('placeholder', 'Suche Vine Produkte');
+    _searchBarInput.setAttribute('placeholder', 'Search Vine products');
     _searchBarInput.setAttribute('name', 'ave-search');
     _searchBarInput.style.cssText = `width: 30em;`;
     _searchBarInput.addEventListener('keyup', (ev) => {

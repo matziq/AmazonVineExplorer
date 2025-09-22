@@ -403,7 +403,7 @@ OLD START----------------------------------------------------------
     "Titel": "Maximex Haarlos schön Enthaarungscreme 30 ml, hemmt den Haarwuchs, beruhigt die gereizte Haut, pflegend und feuchtigkeitsspendend, für jeden Hauttyp",
     "Link": "https://www.amazon.de/dp/B008D2JYFO",
     "BildURL": "https://m.media-amazon.com/images/I/31tkby0uFAL._SS210_.jpg",
-    "Button": "<input data-asin=\"B008D2JYFO\" data-is-parent-asin=\"false\" data-recommendation-id=\"A1PA6795UKMFR9#B008D2JYFO#vine.enrollment.cf0601cf-c8e3-4f47-ba50-e949ce8aa5a7\" data-recommendation-type=\"VENDOR_VINE_FOR_ALL\" class=\"a-button-input\" type=\"submit\" aria-labelledby=\"a-autoid-14-announce\"><span class=\"a-button-text\" aria-hidden=\"true\" id=\"a-autoid-14-announce\">Weitere Details</span>",
+    "Button": "<input data-asin=\"B008D2JYFO\" data-is-parent-asin=\"false\" data-recommendation-id=\"A1PA6795UKMFR9#B008D2JYFO#vine.enrollment.cf0601cf-c8e3-4f47-ba50-e949ce8aa5a7\" data-recommendation-type=\"VENDOR_VINE_FOR_ALL\" class=\"a-button-input\" type=\"submit\" aria-labelledby=\"a-autoid-14-announce\"><span class=\"a-button-text\" aria-hidden=\"true\" id=\"a-autoid-14-announce\">More details</span>",
     "Datum": "23.11.2023, 01:10:01",
     "Favorit": false
 }
