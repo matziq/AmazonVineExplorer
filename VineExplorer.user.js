@@ -639,6 +639,12 @@ function reloadPageWithSubpageTarget(target) {
 
 function addLeftSideButtons(forceClean) {
     const _nodesContainer = document.getElementById('vvp-browse-nodes-container');
+    
+    // Exit early if the container doesn't exist (e.g., on product detail pages)
+    if (!_nodesContainer) {
+        if (SETTINGS.DebugLevel > 10) console.log('Browse nodes container not found, skipping left side buttons');
+        return;
+    }
 
     if (forceClean) _nodesContainer.innerHTML = '';
 
