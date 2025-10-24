@@ -2761,9 +2761,32 @@ unsafeWindow.AVE_testTaxAPI = window.AVE_testTaxAPI = async function() {
         return;
     }
     
-    const btn = tile.querySelector('.vvp-details-btn input');
+    console.log('Found tile:', tile);
+    
+    // Try multiple selectors for the button
+    let btn = tile.querySelector('.vvp-details-btn input');
     if (!btn) {
-        console.error('No details button found in tile.');
+        btn = tile.querySelector('input[data-asin]');
+    }
+    if (!btn) {
+        btn = tile.querySelector('[data-recommendation-id]');
+    }
+    
+    if (!btn) {
+        console.error('No details button found in tile. Tile HTML:', tile.innerHTML.substring(0, 500));
+        console.log('💡 Trying to extract data from tile directly...');
+        
+        // Try to get ASIN from the tile's data attributes or links
+        const link = tile.querySelector('a[href*="/dp/"]');
+        if (link) {
+            const asinMatch = link.href.match(/\/dp\/([A-Z0-9]{10})/);
+            if (asinMatch) {
+                const asin = asinMatch[1];
+                console.log('Found ASIN from product link:', asin);
+                console.log('⚠️ Cannot get recommendation ID without the button. Please provide it manually or wait for products to fully load.');
+                return;
+            }
+        }
         return;
     }
     
