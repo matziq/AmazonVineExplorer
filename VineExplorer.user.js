@@ -2751,7 +2751,7 @@ async function scrapeTaxFromModal(asin, recommendationId) {
  * Diagnostic function to test Amazon Vine API tax value retrieval
  * Usage: Call AVE_testTaxAPI() in the browser console
  */
-window.AVE_testTaxAPI = async function() {
+unsafeWindow.AVE_testTaxAPI = window.AVE_testTaxAPI = async function() {
     console.log('=== Amazon Vine Tax API Diagnostic ===');
     
     // Get first product tile
