@@ -106,18 +106,40 @@ For complete configuration details, see [USER_GUIDE.md](USER_GUIDE.md)
 ## Changelog:
 
 ##### [October 2025] - Version 0.11.0 (English UI Release)
-* **Complete English Translation** - All UI elements, settings, comments, and messages translated to English
-* **Fixed: Tax Value Display** - Re-enabled background tax scanner, Amazon API confirmed working
-* Changed: Tax display shows "Estimated Taxable Value" instead of "Tax Price"
-* Changed: Renamed all `Notifikation` variables to `Notification` for consistency
-* Changed: Translated all German comments and documentation to English
-* Changed: Updated function names (`desktopNotifikation` → `desktopNotification`)
-* Changed: Translated versioning comments and TODO items
-* Added: Comprehensive documentation (USER_GUIDE.md, DEVELOPER_GUIDE.md, INSTALLATION.md)
-* Added: Tax API diagnostic tool (AVE_testTaxAPI) for testing
-* Improved: Code comments and JSDoc annotations
-* Fixed: Console message translations
-* Fixed: fetchfix.js injection using textContent instead of innerHTML
+
+**🌐 Complete English Translation**
+* All UI elements, settings, comments, and messages translated to English
+* Renamed all `Notifikation` variables to `Notification` for consistency
+* Translated all German comments and documentation to English
+* Updated function names (`desktopNotifikation` → `desktopNotification`)
+* Translated versioning comments and TODO items
+* Improved code comments and JSDoc annotations
+
+**🔧 Critical Bug Fixes**
+* **CRITICAL**: Fixed database initialization error that prevented entire script from running - now continues with graceful degradation
+* **CRITICAL**: Fixed outdated tile detection selector (.vvp-details-btn → .vvp-item-tile) - modern Amazon Vine pages now work correctly
+* **CRITICAL**: Fixed fetchfix.js regex error caused by innerHTML parsing - switched to embedded string concatenation
+* Fixed null pointer error in addLeftSideButtons() when browsing product detail pages
+* Added comprehensive database safety checks throughout codebase to prevent crashes
+
+**💵 Tax Display Enhancement**
+* Re-enabled background tax value scanner (was disabled due to bugs)
+* Implemented "Tax Price: $XX.XX" display format with multi-currency support (USD $, EUR €, GBP £)
+* Fixed CSS positioning issue that prevented tax values from appearing on tiles
+* Fixed URL encoding for recommendation IDs containing # characters
+* Tax values now show placeholder "Tax Price: $--.--" until API responds
+* Added AVE_testTaxAPI() diagnostic function for troubleshooting API issues
+
+**🐛 Additional Bug Fixes**
+* Fixed tax display visibility with proper CSS (removed transform positioning that caused off-screen rendering)
+* Added extensive debug logging system with 🟡🟢🔵 emoji prefixes for easy troubleshooting
+* Amazon tax API confirmed working (returns taxValue and taxCurrency)
+
+**📚 Documentation**
+* Added comprehensive USER_GUIDE.md with feature walkthroughs and screenshots
+* Added DEVELOPER_GUIDE.md with architecture documentation and contribution guidelines
+* Added INSTALLATION.md with detailed setup instructions for Tampermonkey/Violentmonkey
+* Updated README.md with English-first content and better organization
 
 ##### [28.06.2024] - Version 0.10.9.0.1
 * Little Bugfix to work with an external Partner
