@@ -2817,8 +2817,8 @@ unsafeWindow.AVE_testTaxAPI = window.AVE_testTaxAPI = async function() {
         return;
     }
     
-    // Test the API endpoint
-    const apiUrl = `${window.location.origin}/vine/api/recommendations/${recId}/item/${asin}`;
+    // Test the API endpoint (encode # characters in recommendation ID)
+    const apiUrl = `${window.location.origin}/vine/api/recommendations/${recId.replace(/#/g, '%23')}/item/${asin}`;
     console.log('API URL:', apiUrl);
     
     try {
