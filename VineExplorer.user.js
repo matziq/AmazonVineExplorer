@@ -892,8 +892,12 @@ function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     console.log('Called createTaxInfo()');
     
     const _prize = prod.data_estimated_tax_prize;
-    let _currencySymbol = '';
-    if (prod.data_tax_currency && prod.data_tax_currency == 'EUR') _currencySymbol = '€';
+    let _currencySymbol = '$'; // Default to USD
+    if (prod.data_tax_currency) {
+        if (prod.data_tax_currency == 'EUR') _currencySymbol = '€';
+        else if (prod.data_tax_currency == 'GBP') _currencySymbol = '£';
+        else if (prod.data_tax_currency == 'USD') _currencySymbol = '$';
+    }
 
     const _taxElement = document.createElement('span');
     _taxElement.setAttribute("id", `ave-taxinfo-${index}`);
@@ -906,9 +910,9 @@ function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     // Display value if available, otherwise show placeholder that will be updated by background scanner
     if (typeof(_prize) === 'number' && _prize !== 0) {
         console.log('Called createTaxInfo(): We have a tax price of: ', _prize);
-        _taxElement_span.innerText = `Estimated Taxable Value: ${_prize} ${_currencySymbol}`;
+        _taxElement_span.innerText = `Tax Price: ${_currencySymbol}${_prize}`;
     } else {
-        _taxElement_span.innerText = `Estimated Taxable Value: --.-- ${_currencySymbol}`;
+        _taxElement_span.innerText = `Tax Price: ${_currencySymbol}--.--`;
     }
     console.log('createTaxInfo(): After innerText');
 
@@ -1259,9 +1263,17 @@ function updateTileStyle(prod) {
             _favStar.style.color = (prod.isFav) ? SETTINGS.FavStarColorChecked : 'white'; // SETTINGS.FavStarColorChecked = Gelb;
 
             const _taxValue = prod.data_estimated_tax_prize;
-            if (typeof(_taxValue) == 'number') {
+            if (typeof(_taxValue) == 'number' && _taxValue !== 0) {
                 const _taxValueElem = _tile.querySelector('.ave-taxinfo-text');
-                _taxValueElem.innerText = (_taxValueElem.innerText).replace('--.--', _taxValue);
+                if (_taxValueElem) {
+                    let _currencySymbol = '$'; // Default to USD
+                    if (prod.data_tax_currency) {
+                        if (prod.data_tax_currency == 'EUR') _currencySymbol = '€';
+                        else if (prod.data_tax_currency == 'GBP') _currencySymbol = '£';
+                        else if (prod.data_tax_currency == 'USD') _currencySymbol = '$';
+                    }
+                    _taxValueElem.innerText = `Tax Price: ${_currencySymbol}${_taxValue}`;
+                }
             }
             return;
         }
