@@ -6,7 +6,7 @@
         var scriptTag = document.createElement("script");
         scriptTag.id = 'fetchfix';
         //Inject the infinite loading wheel fix to the "main world"
-        scriptTag.innerHTML = newFetch;
+        scriptTag.textContent = newFetch;
         scriptTag.onload = function () {
             this.remove();
         };
