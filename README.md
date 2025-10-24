@@ -20,16 +20,104 @@ Makes the Amazon Vine Website even a bit better
 
 This script enhances the experience on the Amazon Vine website. However, it does not provide you with unfair and unintended advantages over other Vine Voices. For example, there will be no automated ordering based on keywords or price! We aim to operate 100% in compliance with the terms and conditions of Amazon Vine using this script.
 
+## Features:
+
+- 🌐 **Full English UI** - Complete English translation of interface and settings
+- 🔍 **Enhanced Search** - Search products with multiple keywords
+- ⭐ **Favorites System** - Mark and filter your favorite products
+- 🔔 **Desktop Notifications** - Get notified of new products with keyword highlighting
+- 📊 **Product Database** - Local IndexedDB storage for tracking products
+- 🎨 **Dark Mode** - Optional dark theme for comfortable browsing
+- ♾️ **Infinite Scroll** - Browse all products with continuous scrolling
+- 🔄 **Background Scan** - Automatic monitoring of new product arrivals
+- 📤 **Share Products** - Generate shareable links for Vine items
+- 🎯 **Custom Filters** - Hide/show specific Amazon categories
+- 💾 **Data Export/Import** - Backup and restore your product database
+
+## Supported Sites:
+
+- Amazon.de (Germany)
+- Amazon.com (United States)
+- Amazon.co.uk (United Kingdom)
+
 ## How to install:
 
-* Install Tampermonkey: [https://www.tampermonkey.net/](https://www.tampermonkey.net/)
-* Install Amazon Vine Explorer: [https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/VineExplorer.user.js](https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/VineExplorer.user.js)
+### Quick Installation:
+1. Install Tampermonkey: [https://www.tampermonkey.net/](https://www.tampermonkey.net/)
+2. Install Amazon Vine Explorer: [Click here to install](https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/VineExplorer.user.js)
+3. Visit any Amazon Vine page and the script will activate automatically
+
+### Manual Installation:
+1. Install Tampermonkey browser extension
+2. Open Tampermonkey Dashboard
+3. Click "Create a new script"
+4. Copy the contents of `VineExplorer.user.js` from this repository
+5. Paste into the editor and save
+
+For detailed installation instructions, see [INSTALLATION.md](INSTALLATION.md)
+
+## Quick Start Guide:
+
+After installation, visit any Amazon Vine page. You'll see:
+
+- **New Navigation Buttons** (left side):
+  - 🆕 New Products - Shows unread products with a badge counter
+  - ⭐ Favorites - View your starred products
+  - 📦 All Products - Infinite scroll through entire catalog
+  - ✅ Mark Page as Seen - Mark current page products as read
+  - ✅ Mark All as Seen - Mark all products as read
+  - ⬆️ Back to Top - Quick scroll to top
+
+- **Settings Button** (gear icon) - Access AVE Settings to customize:
+  - Desktop notifications
+  - Background scanning
+  - Dark mode
+  - Button colors
+  - Display preferences
+  - Database management
+
+## Configuration:
+
+Click the ⚙️ Settings button in the left navigation to access:
+
+### Notification Settings:
+- Enable/disable desktop notifications
+- Set notification keywords for important products
+- Configure notification delay intervals
+
+### Scan Settings:
+- Background scan frequency
+- Page load delays
+- Randomness for scan timing
+
+### Display Settings:
+- Dark mode toggle
+- Custom button colors
+- Hide Amazon navbar/categories
+- Infinite scroll preferences
+
+### Database Management:
+- Export database (backup your data)
+- Import database (restore from backup)
+- Delete database (fresh start)
+
+For complete configuration details, see [USER_GUIDE.md](USER_GUIDE.md)
 
 ## Notice:
 The Script has currently some issues processing the Tax Value.
 We are aware of the issue and are working on a fix.
 
 ## Changelog:
+
+##### [October 2025] - Version 0.11.0 (English UI Release)
+* **Complete English Translation** - All UI elements, settings, comments, and messages translated to English
+* Changed: Renamed all `Notifikation` variables to `Notification` for consistency
+* Changed: Translated all German comments and documentation to English
+* Changed: Updated function names (`desktopNotifikation` → `desktopNotification`)
+* Changed: Translated versioning comments and TODO items
+* Added: Comprehensive documentation (USER_GUIDE.md, DEVELOPER_GUIDE.md, INSTALLATION.md)
+* Improved: Code comments and JSDoc annotations
+* Fixed: Console message translations
 
 ##### [28.06.2024] - Version 0.10.9.0.1
 * Little Bugfix to work with an external Partner
