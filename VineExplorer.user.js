@@ -556,15 +556,14 @@ async function parseTileData(tile) {
         
         dbPromise.then((_ret) => {
             if (_ret) {
-                _ret.gotFromDB = true;
-                _ret.ts_lastSeen = unixTimeStamp();
-                if (!_ret.id) _ret.id = _id;
-                if (!_ret.data_recommendation_id) _ret.data_recommendation_id = _id;
                 if (SETTINGS.DebugLevel > 14) console.log(`parseTileData(): got DB Entry`);
+                const normalized = normalizeProductIdentifiers(_ret, _id);
+                normalized.gotFromDB = true;
+                normalized.ts_lastSeen = unixTimeStamp();
                 if (databaseInitialized && database && database.update) {
-                    database.update(_ret).catch((error) => console.warn('DB update failed during parseTileData()', error));
+                    database.update(normalized).catch((error) => console.warn('DB update failed during parseTileData()', error));
                 }
-                resolve(_ret);
+                resolve(normalized);
             } else {
                 //We have to wait for a lot of Stuff
                 waitForHtmlElmement('.vvp-item-tile-content',async () => {
@@ -725,11 +724,10 @@ function markAllCurrentSiteProductsAsSeen(cb = () => {}) {
         const _tile = _tiles[i];
         const _id = _tile.getAttribute('data-recommendation-id');
         database.get(_id).then((prod) => {
-            prod.isNew = false;
-            if (!prod.data_recommendation_id) prod.data_recommendation_id = _id;
-            if (!prod.id) prod.id = _id;
-            database.update(prod).then( () => {
-                updateTileStyle(prod);
+            const normalized = normalizeProductIdentifiers(prod, _id);
+            normalized.isNew = false;
+            database.update(normalized).then( () => {
+                updateTileStyle(normalized);
                 _returned++;
                 if (_returned == _tilesLength) cb();
             })
@@ -753,9 +751,8 @@ function markAllCurrentDatabaseProductsAsSeen(cb = () => {}) {
             return;
         }
         for (let i = 0; i < _prodsLength; i++) {
-            const _currProd = prods[i];
+            const _currProd = normalizeProductIdentifiers(prods[i]);
             _currProd.isNew = false;
-            if (!_currProd.data_recommendation_id) _currProd.data_recommendation_id = _currProd.id;
             database.update(_currProd, ()=> {
                 if (SETTINGS.DebugLevel > 10) console.log(`markAllCurrentDatabaseProductsAsSeen() - Updated ${_currProd.id}`);
                 _returned++
@@ -1300,12 +1297,12 @@ function btnEventhandlerClick(event, data) {
         database.get(data.recommendation_id).then(async (prod) => {
             if (SETTINGS.DebugLevel > 10) console.log(`btnEventhandlerClick() got respose from DB:`, prod);
             if (prod) {
-                if (!prod.data_recommendation_id) prod.data_recommendation_id = data.recommendation_id;
-                if (!prod.id) prod.id = data.recommendation_id;
-                prod.isNew = false;
-                requestProductDetails(prod).then((_newProd) => {
-                    database.update(_newProd || prod).then( () => {
-                        updateTileStyle(_newProd || prod);
+                const normalized = normalizeProductIdentifiers(prod, data.recommendation_id);
+                normalized.isNew = false;
+                requestProductDetails(normalized).then((_newProd) => {
+                    const finalProd = normalizeProductIdentifiers(_newProd || normalized, data.recommendation_id);
+                    database.update(finalProd).then( () => {
+                        updateTileStyle(finalProd);
                     });
                 })
             }
@@ -1323,11 +1320,10 @@ function favStarEventhandlerClick(event, data) {
         database.get(data.recommendation_id).then((prod) => {
             if (SETTINGS.DebugLevel > 10) console.log(`favStarEventhandlerClick() got respose from DB:`, prod);
             if (prod) {
-                if (!prod.data_recommendation_id) prod.data_recommendation_id = data.recommendation_id;
-                if (!prod.id) prod.id = data.recommendation_id;
-                prod.isFav = !prod.isFav;
-                database.update(prod).then(() => {
-                    updateTileStyle(prod);
+                const normalized = normalizeProductIdentifiers(prod, data.recommendation_id);
+                normalized.isFav = !normalized.isFav;
+                database.update(normalized).then(() => {
+                    updateTileStyle(normalized);
                 });
             }
         })
@@ -1349,19 +1345,21 @@ function updateTileStyle(prod) {
         const _tile = _tiles[i];
         const _id = _tile.getAttribute('data-recommendation-id');
 
-        if (_id == prod.data_recommendation_id || _id == prod.id) {
-            if (SETTINGS.DebugLevel > 10) console.log(`Found Tile with id: ${prod.id || prod.data_recommendation_id}`);
-            if (!prod.data_recommendation_id) prod.data_recommendation_id = _id;
-            if (!prod.id) prod.id = _id;
-            _tile.setAttribute('style', (prod.isFav) ? SETTINGS.CssProductFavTag : (prod.isNew) ? SETTINGS.CssProductNewTag : SETTINGS.CssProductDefault);
-            const _favStar = _tile.querySelector('.ave-favorite-star');
-            _favStar.style.color = (prod.isFav) ? SETTINGS.FavStarColorChecked : 'white'; // SETTINGS.FavStarColorChecked = Gelb;
+        const normalizedProd = normalizeProductIdentifiers(prod);
 
-            const normalizedTax = normalizeTaxValue(prod.data_estimated_tax_prize);
+        if (_id == normalizedProd.data_recommendation_id || _id == normalizedProd.id) {
+            if (SETTINGS.DebugLevel > 10) console.log(`Found Tile with id: ${normalizedProd.id || normalizedProd.data_recommendation_id}`);
+            normalizedProd.data_recommendation_id = _id;
+            normalizedProd.id = _id;
+            _tile.setAttribute('style', (normalizedProd.isFav) ? SETTINGS.CssProductFavTag : (normalizedProd.isNew) ? SETTINGS.CssProductNewTag : SETTINGS.CssProductDefault);
+            const _favStar = _tile.querySelector('.ave-favorite-star');
+            _favStar.style.color = (normalizedProd.isFav) ? SETTINGS.FavStarColorChecked : 'white'; // SETTINGS.FavStarColorChecked = Gelb;
+
+            const normalizedTax = normalizeTaxValue(normalizedProd.data_estimated_tax_prize);
             if (normalizedTax !== null) {
                 const _taxValueElem = _tile.querySelector('.ave-taxinfo-text');
                 if (_taxValueElem) {
-                    const _currencySymbol = getCurrencySymbol(prod.data_tax_currency);
+                    const _currencySymbol = getCurrencySymbol(normalizedProd.data_tax_currency);
                     _taxValueElem.innerText = `Tax Price: ${_currencySymbol}${normalizedTax.toFixed(2)}`;
                 }
             }
@@ -2836,33 +2834,61 @@ function addStyleToTile(_currTile, _product) {
 function loadTaxDetailsIfMissing(prod) {
     if (!prod) return;
 
-    if (!prod.data_recommendation_id && prod.id) prod.data_recommendation_id = prod.id;
+    const normalized = normalizeProductIdentifiers(prod);
 
-    const normalizedTax = normalizeTaxValue(prod.data_estimated_tax_prize);
+    const normalizedTax = normalizeTaxValue(normalized.data_estimated_tax_prize);
     if (normalizedTax !== null) return;
 
-    const recommendationId = prod.data_recommendation_id || prod.id;
+    const recommendationId = normalized.data_recommendation_id || normalized.id;
 
     if (!recommendationId || !prod.data_asin) return;
     if (taxFetchInProgress.has(recommendationId)) return;
 
     taxFetchInProgress.add(recommendationId);
 
-    requestProductDetails(prod).then((updatedProd) => {
+    requestProductDetails(normalized).then((updatedProd) => {
         taxFetchInProgress.delete(recommendationId);
 
-        const updatedTax = normalizeTaxValue(updatedProd.data_estimated_tax_prize);
+        const finalProd = normalizeProductIdentifiers(updatedProd, recommendationId);
+
+        const updatedTax = normalizeTaxValue(finalProd.data_estimated_tax_prize);
         if (updatedTax === null) return;
 
         if (databaseInitialized && database && database.update) {
-            database.update(updatedProd).catch((error) => console.warn('DB update failed in loadTaxDetailsIfMissing()', error));
+            database.update(finalProd).catch((error) => console.warn('DB update failed in loadTaxDetailsIfMissing()', error));
         }
 
-        updateTileStyle(updatedProd);
+        updateTileStyle(finalProd);
     }).catch((error) => {
         taxFetchInProgress.delete(recommendationId);
         console.warn('Failed to fetch tax details for product', recommendationId, error);
     });
+}
+
+function normalizeProductIdentifiers(prod, fallbackId) {
+    if (!prod) return prod;
+
+    if (prod.data_recommendation_id && prod.id && prod.data_recommendation_id !== prod.id) {
+        prod.id = prod.data_recommendation_id;
+    }
+
+    if (!prod.data_recommendation_id) {
+        prod.data_recommendation_id = fallbackId || prod.id;
+    }
+
+    if (!prod.id) {
+        prod.id = prod.data_recommendation_id || fallbackId;
+    }
+
+    if (prod.data_recommendation_id !== prod.id && prod.data_recommendation_id && prod.id) {
+        console.warn('[AVE] normalizeProductIdentifiers() - ID mismatch detected', {
+            prodId: prod.id,
+            recommendationId: prod.data_recommendation_id,
+            fallbackId
+        });
+    }
+
+    return prod;
 }
 
 /**
