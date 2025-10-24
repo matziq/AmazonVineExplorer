@@ -18,13 +18,13 @@
 // @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
 // @grant        unsafeWindow
-// @require      https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/globals.js
-// @require      https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/class_db_handler.js
-// @require      https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/class_product.js
+// @require      https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/globals.js
+// @require      https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/class_db_handler.js
+// @require      https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/class_product.js
 
 // External Source
 // @require      https://raw.githubusercontent.com/eligrey/FileSaver.js/v2.0.4/src/FileSaver.js
-// @require      https://raw.githubusercontent.com/Christof121/VineFetchFix/main/fetchfix.js
+// @require      https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/fetchfix.js
 // ==/UserScript==
 
 /*
