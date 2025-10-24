@@ -901,7 +901,7 @@ function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
 
     const _taxElement = document.createElement('span');
     _taxElement.setAttribute("id", `ave-taxinfo-${index}`);
-    _taxElement.style.cssText = 'position: relative; transform: translate(0px, -30px); width: fit-content; right: 0px;';
+    _taxElement.style.cssText = 'display: block; font-size: 12px; color: #0F1111; margin-top: 4px;';
 
     const _taxElement_span = document.createElement('span');
     _taxElement_span.setAttribute("id", `ave-taxinfo-${index}-text`);
