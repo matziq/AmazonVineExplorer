@@ -889,9 +889,10 @@ ${newUrl}`
 }
 
 function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
-    console.log('Called createTaxInfo()');
+    console.log('🔵 [TAX DISPLAY] Called createTaxInfo() for product:', prod.data_asin);
     
     const _prize = prod.data_estimated_tax_prize;
+    console.log('🔵 [TAX DISPLAY] Tax prize value:', _prize, '| Type:', typeof(_prize));
     let _currencySymbol = '$'; // Default to USD
     if (prod.data_tax_currency) {
         if (prod.data_tax_currency == 'EUR') _currencySymbol = '€';
@@ -909,15 +910,16 @@ function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     
     // Display value if available, otherwise show placeholder that will be updated by background scanner
     if (typeof(_prize) === 'number' && _prize !== 0) {
-        console.log('Called createTaxInfo(): We have a tax price of: ', _prize);
+        console.log('🔵 [TAX DISPLAY] We have a tax price of: ', _prize);
         _taxElement_span.innerText = `Tax Price: ${_currencySymbol}${_prize}`;
     } else {
+        console.log('🔵 [TAX DISPLAY] No tax price yet, showing placeholder');
         _taxElement_span.innerText = `Tax Price: ${_currencySymbol}--.--`;
     }
-    console.log('createTaxInfo(): After innerText');
+    console.log('🔵 [TAX DISPLAY] Created element:', _taxElement);
 
     _taxElement.appendChild(_taxElement_span);
-    console.log('createTaxInfo(): END', _taxElement);
+    console.log('🔵 [TAX DISPLAY] Returning tax element with text:', _taxElement_span.innerText);
     return _taxElement;
 }
 
