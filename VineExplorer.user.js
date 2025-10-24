@@ -537,12 +537,15 @@ async function parseTileData(tile) {
 
         const _id = tile.getAttribute('data-recommendation-id');
 
-        database.get(_id).then((_ret) => {
+        // Handle case where database is not initialized
+        const dbPromise = database && database.get ? database.get(_id).catch(() => null) : Promise.resolve(null);
+        
+        dbPromise.then((_ret) => {
             if (_ret) {
                 _ret.gotFromDB = true;
                 _ret.ts_lastSeen = unixTimeStamp();
                 if (SETTINGS.DebugLevel > 14) console.log(`parseTileData(): got DB Entry`);
-                database.update(_ret);
+                if (database && database.update) database.update(_ret);
                 resolve(_ret);
             } else {
                 //We have to wait for a lot of Stuff
@@ -2676,7 +2679,7 @@ function addStyleToTile(_currTile, _product) {
     console.log('🟢 [TILE STYLE] Called addStyleToTile for product:', _product.data_asin);
 
     if (!_product.gotFromDB) { // We have a new one ==> Save it to our Database ;)
-        database.add(_product);
+        if (database && database.add) database.add(_product);
         _currTile.style.cssText = SETTINGS.CssProductSaved;
         _currTile.classList.add('ave-element-saved');
     } else {
