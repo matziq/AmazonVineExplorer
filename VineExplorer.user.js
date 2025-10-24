@@ -175,14 +175,14 @@
     				}
     
     				// Any variation with a : or ) without a space after will crash, ensure : always has a space after.
-    				newValue = variation.dimensions[key].replace(/([:)])([^\\s])/g, "$1 $2");
+    				newValue = variation.dimensions[key].replace(/([:)])([^\\\\s])/g, "$1 $2");
     				if (newValue !== variation.dimensions[key]) {
     					variation.dimensions[key] = newValue;
     					fixed++;
     				}
     
     				// Any variation with a / with a space before it will crash, remove the space before.
-    				newValue = variation.dimensions[key].replace(/(\\s[/])/g, "/");
+    				newValue = variation.dimensions[key].replace(/(\\\\s[/])/g, "/");
     				if (newValue !== variation.dimensions[key]) {
     					variation.dimensions[key] = newValue;
     					fixed++;
