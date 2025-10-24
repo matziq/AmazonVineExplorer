@@ -558,6 +558,8 @@ async function parseTileData(tile) {
             if (_ret) {
                 _ret.gotFromDB = true;
                 _ret.ts_lastSeen = unixTimeStamp();
+                if (!_ret.id) _ret.id = _id;
+                if (!_ret.data_recommendation_id) _ret.data_recommendation_id = _id;
                 if (SETTINGS.DebugLevel > 14) console.log(`parseTileData(): got DB Entry`);
                 if (databaseInitialized && database && database.update) {
                     database.update(_ret).catch((error) => console.warn('DB update failed during parseTileData()', error));
@@ -724,6 +726,8 @@ function markAllCurrentSiteProductsAsSeen(cb = () => {}) {
         const _id = _tile.getAttribute('data-recommendation-id');
         database.get(_id).then((prod) => {
             prod.isNew = false;
+            if (!prod.data_recommendation_id) prod.data_recommendation_id = _id;
+            if (!prod.id) prod.id = _id;
             database.update(prod).then( () => {
                 updateTileStyle(prod);
                 _returned++;
@@ -751,6 +755,7 @@ function markAllCurrentDatabaseProductsAsSeen(cb = () => {}) {
         for (let i = 0; i < _prodsLength; i++) {
             const _currProd = prods[i];
             _currProd.isNew = false;
+            if (!_currProd.data_recommendation_id) _currProd.data_recommendation_id = _currProd.id;
             database.update(_currProd, ()=> {
                 if (SETTINGS.DebugLevel > 10) console.log(`markAllCurrentDatabaseProductsAsSeen() - Updated ${_currProd.id}`);
                 _returned++
@@ -1295,6 +1300,8 @@ function btnEventhandlerClick(event, data) {
         database.get(data.recommendation_id).then(async (prod) => {
             if (SETTINGS.DebugLevel > 10) console.log(`btnEventhandlerClick() got respose from DB:`, prod);
             if (prod) {
+                if (!prod.data_recommendation_id) prod.data_recommendation_id = data.recommendation_id;
+                if (!prod.id) prod.id = data.recommendation_id;
                 prod.isNew = false;
                 requestProductDetails(prod).then((_newProd) => {
                     database.update(_newProd || prod).then( () => {
@@ -1316,6 +1323,8 @@ function favStarEventhandlerClick(event, data) {
         database.get(data.recommendation_id).then((prod) => {
             if (SETTINGS.DebugLevel > 10) console.log(`favStarEventhandlerClick() got respose from DB:`, prod);
             if (prod) {
+                if (!prod.data_recommendation_id) prod.data_recommendation_id = data.recommendation_id;
+                if (!prod.id) prod.id = data.recommendation_id;
                 prod.isFav = !prod.isFav;
                 database.update(prod).then(() => {
                     updateTileStyle(prod);
@@ -1340,8 +1349,10 @@ function updateTileStyle(prod) {
         const _tile = _tiles[i];
         const _id = _tile.getAttribute('data-recommendation-id');
 
-        if (_id == prod.data_recommendation_id) {
-            if (SETTINGS.DebugLevel > 10) console.log(`Found Tile with id: ${prod.id}`);
+        if (_id == prod.data_recommendation_id || _id == prod.id) {
+            if (SETTINGS.DebugLevel > 10) console.log(`Found Tile with id: ${prod.id || prod.data_recommendation_id}`);
+            if (!prod.data_recommendation_id) prod.data_recommendation_id = _id;
+            if (!prod.id) prod.id = _id;
             _tile.setAttribute('style', (prod.isFav) ? SETTINGS.CssProductFavTag : (prod.isNew) ? SETTINGS.CssProductNewTag : SETTINGS.CssProductDefault);
             const _favStar = _tile.querySelector('.ave-favorite-star');
             _favStar.style.color = (prod.isFav) ? SETTINGS.FavStarColorChecked : 'white'; // SETTINGS.FavStarColorChecked = Gelb;
@@ -2824,6 +2835,8 @@ function addStyleToTile(_currTile, _product) {
 
 function loadTaxDetailsIfMissing(prod) {
     if (!prod) return;
+
+    if (!prod.data_recommendation_id && prod.id) prod.data_recommendation_id = prod.id;
 
     const normalizedTax = normalizeTaxValue(prod.data_estimated_tax_prize);
     if (normalizedTax !== null) return;
