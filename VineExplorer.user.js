@@ -918,6 +918,7 @@ function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
 
     const _taxElement = document.createElement('span');
     _taxElement.setAttribute("id", `ave-taxinfo-${index}`);
+    _taxElement.classList.add('ave-taxinfo');
     _taxElement.style.cssText = 'display: block; font-size: 12px; color: #0F1111; margin-top: 4px;';
 
     const _taxElement_span = document.createElement('span');
@@ -1326,9 +1327,10 @@ function addTileEventhandlers(_currTile) {
     _data.asin = _btn.getAttribute('data-asin');
     _data.parent_asin = _btn.getAttribute('data-is-parent-asin');
     _data.recommendation_id = _btn.getAttribute('data-recommendation-id');
-    waitForHtmlElmement('[id^="ave-taxinfo-"]', (elem) => {
-        _data.tax = _currTile.querySelector('[id^="ave-taxinfo-"] > span').textContent;
-    });
+    waitForHtmlElmement('.ave-taxinfo', () => {
+        const taxNode = _currTile.querySelector('.ave-taxinfo .ave-taxinfo-text');
+        if (taxNode) _data.tax = taxNode.textContent;
+    }, _currTile);
 
     const _childs = _btn.childNodes;
     _btn.addEventListener('click', (event) => {btnEventhandlerClick(event, _data)});
@@ -2714,12 +2716,21 @@ function addStyleToTile(_currTile, _product) {
 
         // Update Timestamps
     }
+    const existingFav = _currTile.querySelector('.ave-favorite-star');
+    if (existingFav) existingFav.remove();
+    const existingShare = _currTile.querySelector('.ave-share');
+    if (existingShare) existingShare.remove();
+    const existingTax = _currTile.querySelectorAll('.ave-taxinfo');
+    existingTax.forEach((node) => node.remove());
+
     _currTile.prepend(createFavStarElement(_product));
     _currTile.prepend(createShareElement(_product));
     console.log('🟢 [TILE STYLE] About to wait for title container to add tax info...');
     // insertHtmlElementAfter((_currTile.getElementsByClassName('vvp-item-product-title-container')[0]), createTaxInfoElement(_product));
     waitForHtmlElmement('.vvp-item-product-title-container', (_elem) => {
         console.log('🟢 [TILE STYLE] Title container found! Creating tax element...');
+        const existingTaxElements = _currTile.querySelectorAll('.ave-taxinfo');
+        existingTaxElements.forEach((node) => node.remove());
         insertHtmlElementAfter(_elem, createTaxInfoElement(_product));
     }, _currTile)
 
