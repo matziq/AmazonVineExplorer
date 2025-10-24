@@ -217,11 +217,11 @@ SETTINGS_USERCONFIG_DEFINES.push({key: 'EnableTopLogoChange', type: 'bool', name
 SETTINGS_USERCONFIG_DEFINES.push({key: 'EnableBtnAll', type: 'bool', name: 'Enable Button All Products', description: 'Enable "All Products" Button'});
 SETTINGS_USERCONFIG_DEFINES.push({key: 'EnableBackgroundScan', type: 'bool', name: 'Enable Background Scan', description: 'Enables the Background scan, if disabled you will find a Button for Autoscan on the Vine Website'});
 SETTINGS_USERCONFIG_DEFINES.push({key: 'EnableInfiniteScrollLiveQuerry', type: 'bool', name: 'Enable Infiniti Scroll Live Querry', description: 'If enabled the Products of the All Products Page will get querryd from Amazon directls otherwise they will get loaded from Database(faster)'});
-SETTINGS_USERCONFIG_DEFINES.push({key: 'EnableDesktopNotification', type: 'bool', name: 'Enable Desktop Notifications', description: 'Enable Desktop Notifications if new Products are detected'});
-SETTINGS_USERCONFIG_DEFINES.push({key: 'DesktopNotificationKeywords', type: 'keywords', name: 'Desktop Notification Highlight Keywords', inputPlaceholder: 'Type in your highlight keyword and press [ENTER]', description: 'Create a List of words u want to Highlight if Product desciption containes one or more of them'});
+SETTINGS_USERCONFIG_DEFINES.push({key: 'EnableDesktopNotifikation', type: 'bool', name: 'Enable Desktop Notifications', description: 'Enable Desktop Notifications if new Products are detected'});
+SETTINGS_USERCONFIG_DEFINES.push({key: 'DesktopNotifikationKeywords', type: 'keywords', name: 'Desktop Notification Highlight Keywords', inputPlaceholder: 'Type in your highlight keyword and press [ENTER]', description: 'Create a List of words u want to Highlight if Product desciption containes one or more of them'});
 SETTINGS_USERCONFIG_DEFINES.push({key: 'BackGroundScanDelayPerPage', type: 'number', min: 2000, max: 10000, name: 'Background Scan Per Page Min Delay(Milliseconds)', description: 'Minimal Delay per Page load of Background Scan'});
 SETTINGS_USERCONFIG_DEFINES.push({key: 'BackGroundScannerRandomness', type: 'number', min: 100, max: 10000, name: 'Background Scan Randomness per Page(Milliseconds)', description: 'A Vale that gives the maximal range for the Randomy added delay per page load'});
-SETTINGS_USERCONFIG_DEFINES.push({key: 'DesktopNotificationDelay', type: 'number', min: 1, max: 900, name: 'Desktop Notification Delay(Seconds)', description: 'Minimal Time between Desktop Notifications. except Notifications with matched keywords'});
+SETTINGS_USERCONFIG_DEFINES.push({key: 'DesktopNotifikationDelay', type: 'number', min: 1, max: 900, name: 'Desktop Notifikation Delay(Seconds)', description: 'Minimal Time between Desktop Notifikations. exept Notifikations with hitted keywords'});
 
 SETTINGS_USERCONFIG_DEFINES.push({type: 'title', name: 'Colors and Styles', description: ''});
 SETTINGS_USERCONFIG_DEFINES.push({key: 'BtnColorNewProducts', type: 'color', name: 'Button Color New Products', description: ''});
@@ -263,7 +263,7 @@ class SETTINGS_DEFAULT {
     EnableTopLogoChange = true;
     EnableBackgroundScan = true;
     EnableInfiniteScrollLiveQuerry = false;
-    EnableDesktopNotification = false;
+    EnableDesktopNotifikation = false;
     EnableBtnAll = true;
 
     BtnColorFavorites = '#ffe143';
@@ -288,8 +288,8 @@ class SETTINGS_DEFAULT {
     FetchRetryMaxTime = 5000;
     BackGroundScanDelayPerPage = 4000;
     BackGroundScannerRandomness = 4000;
-    DesktopNotificationDelay = 60;
-    DesktopNotificationKeywords = [];
+    DesktopNotifikationDelay = 60;
+    DesktopNotifikationKeywords = [];
 
     CssProductNewTag = "border: 2mm ridge rgba(218, 247, 166, .6); background-color: rgba(218, 247, 166, .2)";
     CssProductSaved = "border: 2mm ridge rgba(105, 163, 0, .6); background-color: rgba(105, 163, 0, .2)";

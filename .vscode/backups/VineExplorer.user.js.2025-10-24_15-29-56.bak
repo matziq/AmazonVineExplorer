@@ -2437,8 +2437,8 @@ function desktopNotification(title, message, image = null, requireInteraction = 
     } else {
         Notification.requestPermission().then(function(permission) {
             if (permission === 'granted') {
-                console.log('Permission for notifications granted!');
-                desktopNotification(title, message, icon, onclick);
+                console.log('Berechtigung für Benachrichtigungen erhalten!');
+                desktopNotifikation(title, message, icon, onclick);
             }
         });
     }

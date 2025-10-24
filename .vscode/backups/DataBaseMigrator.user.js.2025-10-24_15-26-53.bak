@@ -288,25 +288,25 @@ document.head.innerHTML = `
         }
 
         h1 {
-            margin-top: 0; /* Remove top margin of heading */
+            margin-top: 0; /* Oberen Abstand der Überschrift entfernen */
         }
 
         #outputTextarea {
-            width: calc(100% - 20px); /* 100% width minus 20px (10px on each side) for the border */
-            height: 200px; /* Fixed height for console-look text field */
-            background-color: #000; /* Black background */
-            color: #00ff00; /* Bright green text color */
-            outline: none; /* No focus border */
-            padding: 10px; /* Internal padding for text */
-            margin-top: 10px; /* Top margin for the textarea */
-            resize: none; /* Disable resizing by user */
-            overflow: auto; /* Enable scrolling when text exceeds height */
+            width: calc(100% - 20px); /* 100% Breite abzüglich 20px (10px auf jeder Seite) für den Rand */
+            height: 200px; /* Festgelegte Höhe für das Konsolen-Look Textfeld */
+            background-color: #000; /* Schwarzer Hintergrund */
+            color: #00ff00; /* Helle grüne Textfarbe */
+            outline: none; /* Kein Fokus-Rahmen */
+            padding: 10px; /* Innenabstand für den Text */
+            margin-top: 10px; /* Oberen Abstand für die Textarea */
+            resize: none; /* Deaktiviere das Ändern der Größe durch Benutzer */
+            overflow: auto; /* Aktiviere das Scrollen, wenn der Text über die Höhe hinausgeht */
         }
 
         #inputField {
-            width: calc(100% - 20px); /* 100% width minus 20px (10px on each side) for the border */
-            margin-top: 10px; /* Top margin for input field */
-            padding: 10px; /* Internal padding for input field */
+            width: calc(100% - 20px); /* 100% Breite abzüglich 20px (10px auf jeder Seite) für den Rand */
+            margin-top: 10px; /* Oberen Abstand für das Eingabefeld */
+            padding: 10px; /* Innenabstand für das Eingabefeld */
         }
     </style>
 `;

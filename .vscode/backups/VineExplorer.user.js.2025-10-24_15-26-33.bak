@@ -2354,7 +2354,7 @@ function stickElementToTopScrollEVhandler(elemID, dist) {
     }
 }
 
-let lastDesktopNotificationTimestamp = 0;
+let lastDesktopNotifikationTimestamp = 0;
 
 function updateNewProductsBtn() {
     if (AUTO_SCAN_IS_RUNNING) return;
@@ -2376,11 +2376,11 @@ function updateNewProductsBtn() {
         }
 
         let _notifyed = false;
-        if (SETTINGS.EnableDesktopNotification && SETTINGS.DesktopNotificationKeywords?.length > 0) {
+        if (SETTINGS.EnableDesktopNotifikation && SETTINGS.DesktopNotifikationKeywords?.length > 0) {
 
             if (SETTINGS.DebugLevel > 1) console.log(`updateNewProductsBtn(): Insige IF`);
 
-            const _configKeyWords = SETTINGS.DesktopNotificationKeywords;
+            const _configKeyWords = SETTINGS.DesktopNotifikationKeywords;
 
 
             for (let i = 0; i < _prodArrLength; i++) {
@@ -2394,32 +2394,32 @@ function updateNewProductsBtn() {
                     const _currKey = _configKeyWords[j].toLowerCase();
                     if (SETTINGS.DebugLevel > 1) console.log(`updateNewProductsBtn(): Search Product Deescription for Keyword: ${_currKey}`);
                     if (_descFull.includes(_currKey)) {
-                        desktopNotification(`Amazon Vine Explorer - ${AVE_VERSION}`, _prod.description_full, _prod.data_img_url, true);
+                        desktopNotifikation(`Amazon Vine Explorer - ${AVE_VERSION}`, _prod.description_full, _prod.data_img_url, true);
                         _notifyed = true;
                     }
                     break;
                 }
             }
         }
-        if (SETTINGS.EnableDesktopNotification && !_notifyed && _prodArrLength > oldCountOfNewItems){
-            if (unixTimeStamp() - lastDesktopNotificationTimestamp >= SETTINGS.DesktopNotificationDelay) {
+        if (SETTINGS.EnableDesktopNotifikation && !_notifyed && _prodArrLength > oldCountOfNewItems){
+            if (unixTimeStamp() - lastDesktopNotifikationTimestamp >= SETTINGS.DesktopNotifikationDelay) {
                 oldCountOfNewItems = _prodArrLength;
-                lastDesktopNotificationTimestamp = unixTimeStamp();
+                lastDesktopNotifikationTimestamp = unixTimeStamp();
 
-                desktopNotification(`Amazon Vine Explorer - ${AVE_VERSION}` , `${_prodArrLength} new Vine products found`);
+                desktopNotifikation(`Amazon Vine Explorer - ${AVE_VERSION}` , `${_prodArrLength} new Vine products found`);
             }
         }
     })
 }
 
 /**
- * Send a Desktop Notification
+ * Send a Desktop Notifikation
  * @param {string} title
  * @param {string} message
  * @param {string} icon
  *
  */
-function desktopNotification(title, message, image = null, requireInteraction = null, onClick = () => {}) {
+function desktopNotifikation(title, message, image = null, requireInteraction = null, onClick = () => {}) {
     const _vineLogo = 'https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/vine_logo.png';
     const _vineLogoImp = 'https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/dev-main/vine_logo_important.png'
     const _defaultImage = 'https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/dev-main/vine_logo_notification_image.png'
@@ -2437,8 +2437,8 @@ function desktopNotification(title, message, image = null, requireInteraction = 
     } else {
         Notification.requestPermission().then(function(permission) {
             if (permission === 'granted') {
-                console.log('Permission for notifications granted!');
-                desktopNotification(title, message, icon, onclick);
+                console.log('Berechtigung für Benachrichtigungen erhalten!');
+                desktopNotifikation(title, message, icon, onclick);
             }
         });
     }
