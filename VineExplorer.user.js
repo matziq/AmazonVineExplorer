@@ -299,19 +299,24 @@ const database = new DB_HANDLER(DATABASE_NAME, DATABASE_OBJECT_STORE_NAME, DATAB
             }
             addAveSettingsTab();
             addAVESettingsMenu();
-            waitForHtmlElmement('.vvp-details-btn', () => {
+            
+            // Wait for product tiles with "See details" buttons (Amazon may use different classes)
+            waitForHtmlElmement('.vvp-item-tile', () => {
                 if (_execLock) return;
-                            const _topLine = _tilesContainer.getElementsByTagName('p')[0];
-                            _topLine.innerHTML = `<p>Showing <strong>${_fastCount}</strong> of <strong>${_productArrayLength}</strong> results</p>`
+                _execLock = true;
+                console.log('🟡 [INIT] Found product tiles, waiting for all tiles to load...');
+                
                 detectCurrentPageType();
 
                 let _tileCount = 0;
                 const _initialWaitForAllTiles = setInterval(() => {
-                    const _count = document.getElementsByClassName('vvp-details-btn').length // Buttons take a bit more time as tiles
+                    // Count tiles instead of buttons since button class may vary
+                    const _count = document.getElementsByClassName('vvp-item-tile').length;
                     if (_count > _tileCount) {
                         _tileCount = _count;
                     } else {
                         clearInterval(_initialWaitForAllTiles);
+                        console.log(`🟡 [INIT] All ${_count} tiles loaded, calling init(true)`);
                         init(true);
                     }
                 }, 100);
@@ -319,6 +324,7 @@ const database = new DB_HANDLER(DATABASE_NAME, DATABASE_OBJECT_STORE_NAME, DATAB
             waitForHtmlElmement('.vvp-no-offers-msg', () => { // Empty Page ?!?!
                 if (_execLock) return;
                 _execLock = true;
+                console.log('🟡 [INIT] No offers page detected, calling init(false)');
                 if(SETTINGS.DarkMode){
                     waitForHtmlElmement('body', () => {
                         injectDarkMode();
