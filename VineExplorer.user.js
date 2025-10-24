@@ -252,13 +252,15 @@ unsafeWindow.ave = {
 
 const database = new DB_HANDLER(DATABASE_NAME, DATABASE_OBJECT_STORE_NAME, DATABASE_VERSION, (res, err) => {
     if (err) {
-        console.error(`Somithing was going wrong while init database :'(`);
-        return;
-    } else {
-        let _execLock = false;
-        console.log('Lets Check where we are....');
-        if (SITE_IS_VINE){
-            console.log('We are on Amazon Vine'); // We are on the amazon vine site
+        console.warn(`⚠️ Database initialization failed - some features may not work properly`);
+        console.warn(`⚠️ Tax display and basic features will still function`);
+        // Don't return - continue with basic functionality
+    }
+    
+    let _execLock = false;
+    console.log('Lets Check where we are....');
+    if (SITE_IS_VINE){
+        console.log('We are on Amazon Vine'); // We are on the amazon vine site
             if(SETTINGS.DarkMode){
                 waitForHtmlElmement('body', () => {
                     injectDarkMode();
@@ -346,7 +348,6 @@ const database = new DB_HANDLER(DATABASE_NAME, DATABASE_OBJECT_STORE_NAME, DATAB
                 }
             }
         }
-    }
 });
 
 unsafeWindow.ave.database = database;
