@@ -891,14 +891,7 @@ ${newUrl}`
 function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     console.log('Called createTaxInfo()');
     
-    // Tax fetching is currently disabled due to API issues
-    // Only display if we actually have a valid tax value
     const _prize = prod.data_estimated_tax_prize;
-    if (typeof(_prize) !== 'number' || _prize === 0) {
-        // Return empty element if no valid tax data
-        return document.createElement('span');
-    }
-    
     let _currencySymbol = '';
     if (prod.data_tax_currency && prod.data_tax_currency == 'EUR') _currencySymbol = '€';
 
@@ -909,8 +902,14 @@ function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     const _taxElement_span = document.createElement('span');
     _taxElement_span.setAttribute("id", `ave-taxinfo-${index}-text`);
     _taxElement_span.classList.add('ave-taxinfo-text');
-    console.log('Called createTaxInfo(): We have a Taxprize of: ', _prize);
-    _taxElement_span.innerText = `Estimated Taxable Value: ${_prize} ${_currencySymbol}`;
+    
+    // Display value if available, otherwise show placeholder that will be updated by background scanner
+    if (typeof(_prize) === 'number' && _prize !== 0) {
+        console.log('Called createTaxInfo(): We have a tax price of: ', _prize);
+        _taxElement_span.innerText = `Estimated Taxable Value: ${_prize} ${_currencySymbol}`;
+    } else {
+        _taxElement_span.innerText = `Estimated Taxable Value: --.-- ${_currencySymbol}`;
+    }
     console.log('createTaxInfo(): After innerText');
 
     _taxElement.appendChild(_taxElement_span);
@@ -2356,16 +2355,7 @@ function initBackgroundScan() {
                         }
                         break;
                     }
-                    case 2: {   // qerry about other values (tax, real prize, ....) ~ 20 - 30 Products then loopover to stage 1
-
-
-                        //Disaled due to Bugs fetching the Tax
-                        _backGroundScanStage++;
-                        _scanFinished();
-                        break;
-
-
-
+                    case 2: {   // Query about other values (tax, real price, ....) ~ 20 - 30 Products then loop over to stage 1
                         if (SETTINGS.DebugLevel > 10) console.log('initBackgroundScan().loop.case.2 with _subStage: ', _subStage);
                         database.getAll().then((products) => {
                             const _needUpdate = [];
@@ -2390,7 +2380,7 @@ function initBackgroundScan() {
                                 _scanFinished();
                                 _subStage++;
                             }).catch(() => {
-                                console.error('There was an error while updating an product in database');
+                                console.error('There was an error while updating a product in database');
                                 _scanFinished();
                                 _subStage++;
                             });
