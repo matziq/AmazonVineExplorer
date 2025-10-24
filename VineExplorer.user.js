@@ -2,15 +2,15 @@
 // @name         Amazon Vine Explorer
 // @namespace    http://tampermonkey.net/
 // @version      0.11.0
-// @updateURL    https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/VineExplorer.user.js
-// @downloadURL  https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/VineExplorer.user.js
+// @updateURL    https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/VineExplorer.user.js
+// @downloadURL  https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/VineExplorer.user.js
 // @description  Better View, Search and Explore for Amazon Vine Products - Vine Voices Edition
 // @author       MarkusSR1984, Christof121
 // @match        *://www.amazon.de/*
 // @match        *://www.amazon.com/*
 // @match        *://www.amazon.co.uk/*
 // @license      MIT
-// @icon         https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/vine_logo.png
+// @icon         https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/vine_logo.png
 // @run-at       document-start
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -242,6 +242,13 @@ let TimeouteScrollTilesBufferArray = [];
 let BackGroundScanIsRunning = false;
 let databaseInitialized = false;
 const taxFetchInProgress = new Set();
+const PRODUCT_UNAVAILABLE_ERROR_CODES = new Set([
+    'ITEM_NOT_IN_ENROLLMENT',
+    'OFFER_NOT_AVAILABLE',
+    'OFFER_NOT_AVAILABLE_EXCEPTION',
+    'DATASTORE_ITEM_NOT_FOUND',
+    'INVENTORY_NOT_AVAILABLE',
+]);
 
 // Make some things accessable from console
 unsafeWindow.ave = {
@@ -983,6 +990,12 @@ function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     const _taxElement_span = document.createElement('span');
     _taxElement_span.setAttribute("id", `ave-taxinfo-${index}-text`);
     _taxElement_span.classList.add('ave-taxinfo-text');
+    if (prod.forceRemove) {
+        _taxElement_span.innerText = prod.unavailableMessage || 'No longer available';
+        _taxElement_span.style.color = '#B12704';
+        _taxElement.appendChild(_taxElement_span);
+        return _taxElement;
+    }
     
     // Display value if available, otherwise show placeholder that will be updated by background scanner
     if (normalizedTax !== null) {
@@ -1304,6 +1317,16 @@ function btnEventhandlerClick(event, data) {
                     database.update(finalProd).then( () => {
                         updateTileStyle(finalProd);
                     });
+                }).catch((error) => {
+                    console.warn('btnEventhandlerClick(): product details unavailable', error);
+                    const errorCode = typeof error === 'string' ? error : error?.exceptionType;
+                    if (errorCode && PRODUCT_UNAVAILABLE_ERROR_CODES.has(errorCode)) {
+                        const message = (typeof error === 'object' && (error.message || error.errorMessage)) ? (error.message || error.errorMessage) : getUnavailableMessage(errorCode);
+                        const unavailableProd = markProductAsUnavailable(normalized, errorCode, message);
+                        database.update(unavailableProd).then(() => {
+                            updateTileStyle(unavailableProd);
+                        });
+                    }
                 })
             }
         })
@@ -1351,6 +1374,20 @@ function updateTileStyle(prod) {
             if (SETTINGS.DebugLevel > 10) console.log(`Found Tile with id: ${normalizedProd.id || normalizedProd.data_recommendation_id}`);
             normalizedProd.data_recommendation_id = _id;
             normalizedProd.id = _id;
+
+            if (normalizedProd.forceRemove) {
+                _tile.setAttribute('style', SETTINGS.CssProductRemovalTag);
+                const _taxValueElem = _tile.querySelector('.ave-taxinfo-text');
+                if (_taxValueElem) _taxValueElem.innerText = normalizedProd.unavailableMessage || 'No longer available';
+                const detailsBtn = _tile.querySelector('.vvp-details-btn input');
+                if (detailsBtn) {
+                    detailsBtn.disabled = true;
+                    detailsBtn.classList.add('ave-button-disabled');
+                    if (detailsBtn.value) detailsBtn.value = 'Not available';
+                }
+                return;
+            }
+
             _tile.setAttribute('style', (normalizedProd.isFav) ? SETTINGS.CssProductFavTag : (normalizedProd.isNew) ? SETTINGS.CssProductNewTag : SETTINGS.CssProductDefault);
             const _favStar = _tile.querySelector('.ave-favorite-star');
             _favStar.style.color = (normalizedProd.isFav) ? SETTINGS.FavStarColorChecked : 'white'; // SETTINGS.FavStarColorChecked = Gelb;
@@ -2724,9 +2761,9 @@ function updateNewProductsBtn() {
  *
  */
 function desktopNotification(title, message, image = null, requireInteraction = null, onClick = () => {}) {
-    const _vineLogo = 'https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/vine_logo.png';
-    const _vineLogoImp = 'https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/dev-main/vine_logo_important.png'
-    const _defaultImage = 'https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/dev-main/vine_logo_notification_image.png'
+    const _vineLogo = 'https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/vine_logo.png';
+    const _vineLogoImp = 'https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/vine_logo_important.png'
+    const _defaultImage = 'https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/vine_logo_notification_image.png'
 
     if (Notification.permission === 'granted') {
         const _notification = new Notification(title, {
@@ -2835,6 +2872,7 @@ function loadTaxDetailsIfMissing(prod) {
     if (!prod) return;
 
     const normalized = normalizeProductIdentifiers(prod);
+    if (normalized.forceRemove) return;
 
     const normalizedTax = normalizeTaxValue(normalized.data_estimated_tax_prize);
     if (normalizedTax !== null) return;
@@ -2861,8 +2899,48 @@ function loadTaxDetailsIfMissing(prod) {
         updateTileStyle(finalProd);
     }).catch((error) => {
         taxFetchInProgress.delete(recommendationId);
+        const errorCode = typeof error === 'string' ? error : error?.exceptionType;
+        if (errorCode && PRODUCT_UNAVAILABLE_ERROR_CODES.has(errorCode)) {
+            const message = (typeof error === 'object' && (error.message || error.errorMessage)) ? (error.message || error.errorMessage) : getUnavailableMessage(errorCode);
+            const unavailableProd = markProductAsUnavailable(normalized, errorCode, message);
+            if (databaseInitialized && database && database.update) {
+                database.update(unavailableProd).catch((dbError) => console.warn('DB update failed while marking unavailable', dbError));
+            }
+            updateTileStyle(unavailableProd);
+            return;
+        }
         console.warn('Failed to fetch tax details for product', recommendationId, error);
     });
+}
+
+function markProductAsUnavailable(prod, reason = 'ITEM_NOT_AVAILABLE', message) {
+    if (!prod) return prod;
+    const normalized = normalizeProductIdentifiers(prod);
+    normalized.forceRemove = true;
+    normalized.isNew = false;
+    normalized.notSeenCounter = 0;
+    normalized.unavailableReason = reason;
+    normalized.unavailableMessage = message || getUnavailableMessage(reason);
+    normalized.data_estimated_tax_prize = null;
+    normalized.data_tax_currency = normalized.data_tax_currency || '$';
+    normalized.ts_unavailable = unixTimeStamp();
+    return normalized;
+}
+
+function getUnavailableMessage(reason) {
+    switch (reason) {
+        case 'ITEM_NOT_IN_ENROLLMENT':
+            return 'This Vine offer is no longer available.';
+        case 'OFFER_NOT_AVAILABLE':
+        case 'OFFER_NOT_AVAILABLE_EXCEPTION':
+            return 'This offer is currently unavailable.';
+        case 'DATASTORE_ITEM_NOT_FOUND':
+            return 'Product could not be found.';
+        case 'INVENTORY_NOT_AVAILABLE':
+            return 'Inventory for this product has been depleted.';
+        default:
+            return 'No longer available.';
+    }
 }
 
 function normalizeProductIdentifiers(prod, fallbackId) {
@@ -3053,26 +3131,29 @@ console.log('💡 Tax API diagnostic tool loaded. Run AVE_testTaxAPI() in consol
 
 
 async function requestProductDetails(prod) {
+    const normalizedProd = normalizeProductIdentifiers(prod);
     return new Promise(async (resolve, reject) => {
-        if (prod.data_asin_is_parent) {// Lets get the Childs first
-            fetch(`${window.location.origin}/vine/api/recommendations/${prod.id}`.replace(/#/g, '%23')).then(r => r.json()).then(async (res) => {
+        if (normalizedProd.data_asin_is_parent) {// Lets get the Childs first
+            fetch(`${window.location.origin}/vine/api/recommendations/${normalizedProd.id}`.replace(/#/g, '%23')).then(r => r.json()).then(async (res) => {
                 if (res.error) {
-                    if (res.error.exceptionType == 'ITEM_NOT_IN_ENROLLMENT') {
-                        prod.forceRemove = true;
-                        resolve(prod);
+                    const exceptionType = res.error.exceptionType || 'ITEM_NOT_AVAILABLE';
+                    if (PRODUCT_UNAVAILABLE_ERROR_CODES.has(exceptionType)) {
+                        const message = res.error.message || res.error.errorMessage;
+                        resolve(markProductAsUnavailable(normalizedProd, exceptionType, message));
                     } else {
                         console.error('requestProductDetails():ERROR:', res.error);
-                        reject(res.error.exceptionType);
+                        reject(res.error);
                     }
+                    return;
                 }
                 const _data = res.result;
                 console.log('DATA:', _data)
-                prod.data_childs = _data.variations || [];
+                normalizedProd.data_childs = _data.variations || [];
                 const _promArray = new Array();
-                const initialTax = normalizeTaxValue(prod.data_estimated_tax_prize);
-                prod.data_estimated_tax_prize = initialTax !== null ? initialTax : 0;
-                for (_child of prod.data_childs) {
-                    _promArray.push(fetch(`${window.location.origin}/vine/api/recommendations/${(prod.id).replace(/#/g, '%23')}/item/${_child.asin}`.replace(/#/g, '%23')).then(r => r.json()).then((childData) => {
+                const initialTax = normalizeTaxValue(normalizedProd.data_estimated_tax_prize);
+                normalizedProd.data_estimated_tax_prize = initialTax !== null ? initialTax : 0;
+                for (_child of normalizedProd.data_childs) {
+                    _promArray.push(fetch(`${window.location.origin}/vine/api/recommendations/${(normalizedProd.id).replace(/#/g, '%23')}/item/${_child.asin}`.replace(/#/g, '%23')).then(r => r.json()).then((childData) => {
                         console.log('CHILD_DATA:', childData);
                         if (!childData.error) {
 
@@ -3087,10 +3168,10 @@ async function requestProductDetails(prod) {
                             const childTaxValue = normalizeTaxValue(_child.taxValue);
                             if (childTaxValue !== null) {
                                 _child.taxValue = childTaxValue;
-                                if (prod.data_estimated_tax_prize < childTaxValue) {
-                                    prod.data_estimated_tax_prize = childTaxValue;
+                                if (normalizedProd.data_estimated_tax_prize < childTaxValue) {
+                                    normalizedProd.data_estimated_tax_prize = childTaxValue;
                                     if (_child.taxCurrency) {
-                                        prod.data_tax_currency = _child.taxCurrency;
+                                        normalizedProd.data_tax_currency = _child.taxCurrency;
                                     }
                                 }
                             }
@@ -3099,29 +3180,44 @@ async function requestProductDetails(prod) {
                 }
                 Promise.all(_promArray).then((values) => {
                     console.log('All fetches returned: ', values);
-                    resolve(prod);
+                    resolve(normalizedProd);
+                }).catch((error) => {
+                    console.error('requestProductDetails(): child fetch failed', error);
+                    reject(error);
                 });
-            })
+            }).catch((error) => {
+                console.error('requestProductDetails(): parent fetch failed', error);
+                reject(error);
+            });
         } else {
-            fetch(`${window.location.origin}/vine/api/recommendations/${prod.id}/item/${prod.data_asin}`.replace(/#/g, '%23')).then(r => r.json()).then(ret => {
+            fetch(`${window.location.origin}/vine/api/recommendations/${normalizedProd.id}/item/${normalizedProd.data_asin}`.replace(/#/g, '%23')).then(r => r.json()).then(ret => {
                 console.log('RETURN:', ret);
                 if (ret.error) {
-                    reject(ret.error.exceptionType) // => "ITEM_NOT_IN_ENROLLMENT"
+                    const exceptionType = ret.error.exceptionType || 'ITEM_NOT_AVAILABLE';
+                    if (PRODUCT_UNAVAILABLE_ERROR_CODES.has(exceptionType)) {
+                        const message = ret.error.message || ret.error.errorMessage;
+                        resolve(markProductAsUnavailable(normalizedProd, exceptionType, message));
+                    } else {
+                        reject(ret.error);
+                    }
                 } else {
                     const data = ret.result;
-                    prod.data_feature_bullets = data.featureBullets;
-                    prod.data_contributors = data.byLineContributors;
-                    prod.data_catalogSize = data.catalogSize;
-                    prod.data_tax_currency = data.taxCurrency || prod.data_tax_currency;
+                    normalizedProd.data_feature_bullets = data.featureBullets;
+                    normalizedProd.data_contributors = data.byLineContributors;
+                    normalizedProd.data_catalogSize = data.catalogSize;
+                    normalizedProd.data_tax_currency = data.taxCurrency || normalizedProd.data_tax_currency;
                     const normalizedTax = normalizeTaxValue(data.taxValue);
-                    prod.data_estimated_tax_prize = normalizedTax !== null ? normalizedTax : prod.data_estimated_tax_prize;
-                    prod.data_limited_quantity = data.limitedQuantity;
+                    normalizedProd.data_estimated_tax_prize = normalizedTax !== null ? normalizedTax : normalizedProd.data_estimated_tax_prize;
+                    normalizedProd.data_limited_quantity = data.limitedQuantity;
                     
                     // Diagnostic logging for tax value
-                    console.log('[TAX DEBUG] Product:', prod.data_asin, '| taxValue:', data.taxValue, '| taxCurrency:', data.taxCurrency, '| Type:', typeof(data.taxValue));
+                    console.log('[TAX DEBUG] Product:', normalizedProd.data_asin, '| taxValue:', data.taxValue, '| taxCurrency:', data.taxCurrency, '| Type:', typeof(data.taxValue));
                     
-                    resolve(prod);
+                    resolve(normalizedProd);
                 }
+            }).catch((error) => {
+                console.error('requestProductDetails(): fetch failed', error);
+                reject(error);
             })
         }
     })

@@ -2,15 +2,15 @@
 // @name         Vine Viewer Database Converter
 // @namespace    http://tampermonkey.net/
 // @version      0.2.5
-// @updateURL    https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/DataBaseMigrator.user.js
-// @downloadURL  https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/DataBaseMigrator.user.js
+// @updateURL    https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/DataBaseMigrator.user.js
+// @downloadURL  https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/DataBaseMigrator.user.js
 // @description  Converts VineViewer Database to Vine Explorer Database
 // @author       MarkusSR1984
 // @match        *://www.amazon.de/vine/*
 // @match        *://amazon.de/vine/*
 // @match        *://www.amazon.de/-/en/vine/*
 // @license      MIT
-// @icon         https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/vine_logo.png
+// @icon         https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/vine_logo.png
 // @run-at       document-idle
 // @grant        GM.xmlHttpRequest
 // @grant        GM.openInTab

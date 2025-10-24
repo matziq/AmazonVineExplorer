@@ -268,7 +268,7 @@ Settings for:
 ## Support
 
 For issues, feature requests, or questions:
-- GitHub Issues: [Amazon-Vine-Explorer/AmazonVineExplorer](https://github.com/Amazon-Vine-Explorer/AmazonVineExplorer/issues)
+- GitHub Issues: [matziq/AmazonVineExplorer](https://github.com/matziq/AmazonVineExplorer/issues)
 - Check existing issues before creating new ones
 - Provide browser version and script version in bug reports
 

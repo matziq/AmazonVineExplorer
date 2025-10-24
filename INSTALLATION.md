@@ -78,10 +78,10 @@ Tampermonkey is a browser extension that runs userscripts like Amazon Vine Explo
 1. **Ensure Tampermonkey is installed** (see above)
 
 2. **Click the installation link:**
-   - **From GitHub (latest stable):**
-     ```
-     https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/VineExplorer.user.js
-     ```
+    - **From GitHub (latest stable):**
+       ```
+       https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/VineExplorer.user.js
+       ```
    - Click the link or copy-paste it into your browser
 
 3. **Tampermonkey will detect the script:**
@@ -97,7 +97,7 @@ Tampermonkey is a browser extension that runs userscripts like Amazon Vine Explo
 ### Method 2: Manual Installation
 
 1. **Get the script code:**
-   - Visit: [VineExplorer.user.js on GitHub](https://github.com/Amazon-Vine-Explorer/AmazonVineExplorer/blob/main/VineExplorer.user.js)
+   - Visit: [VineExplorer.user.js on GitHub](https://github.com/matziq/AmazonVineExplorer/blob/i18n/english-ui/VineExplorer.user.js)
    - Click the "Raw" button
    - Copy all the code (Ctrl+A, Ctrl+C)
 
@@ -211,7 +211,7 @@ If using a fork (like the English UI version):
 3. **Example URLs:**
    ```javascript
    // Main repository
-   // @updateURL https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/VineExplorer.user.js
+   // @updateURL https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/VineExplorer.user.js
    
    // English UI fork
    // @updateURL https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/VineExplorer.user.js
@@ -388,7 +388,7 @@ If you encounter issues:
    - Include in bug reports
 
 3. **GitHub Issues:**
-   - Visit: [AmazonVineExplorer/issues](https://github.com/Amazon-Vine-Explorer/AmazonVineExplorer/issues)
+   - Visit: [AmazonVineExplorer/issues](https://github.com/matziq/AmazonVineExplorer/issues)
    - Search existing issues
    - Create new issue if needed
 
@@ -405,7 +405,7 @@ For developers contributing to the project:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Amazon-Vine-Explorer/AmazonVineExplorer.git
+   git clone https://github.com/matziq/AmazonVineExplorer.git
    ```
 
 2. **Use local development script:**

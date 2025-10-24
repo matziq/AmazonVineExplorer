@@ -44,7 +44,7 @@ This script enhances the experience on the Amazon Vine website. However, it does
 
 ### Quick Installation:
 1. Install Tampermonkey: [https://www.tampermonkey.net/](https://www.tampermonkey.net/)
-2. Install Amazon Vine Explorer: [Click here to install](https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/VineExplorer.user.js)
+2. Install Amazon Vine Explorer: [Click here to install](https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/VineExplorer.user.js)
 3. Visit any Amazon Vine page and the script will activate automatically
 
 ### Manual Installation:
@@ -55,6 +55,11 @@ This script enhances the experience on the Amazon Vine website. However, it does
 5. Paste into the editor and save
 
 For detailed installation instructions, see [INSTALLATION.md](INSTALLATION.md)
+
+### Tampermonkey Update Source
+- This fork publishes builds from `matziq/AmazonVineExplorer` on the `i18n/english-ui` branch.
+- The userscript header now sets `@updateURL` and `@downloadURL` to the fork, so Tampermonkey pulls updates from this branch.
+- Confirm the setting via Tampermonkey → Dashboard → select the script → **Settings** → “Override update URL”.
 
 ## Quick Start Guide:
 

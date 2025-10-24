@@ -7,7 +7,7 @@
 // @match        *://www.amazon.de/*
 // @match        *://www.amazon.com/*
 // @license      MIT
-// @icon         https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/main/vine_logo.png
+// @icon         https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/vine_logo.png
 // @run-at       document-start
 // @grant        GM_registerMenuCommand
 // @grant        GM_getValue
@@ -41,7 +41,7 @@
  * - Auf der Seite die Option "Zugriff auf Datei-URLs zulassen" aktivieren
  *
  * Dieses Template als eigenes script in Tampermonkey hinzufügen oder mit dem link istallieren
- * - https://raw.githubusercontent.com/Amazon-Vine-Explorer/AmazonVineExplorer/dev-main/VineExplorerLocalDevelopment.user.js
+ * - https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/VineExplorerLocalDevelopment.user.js
  * - Die Pfade der Dateien bei @require and eure localen Pfade anpassen
  *
  * NICHT VERGESSEN die Onlineversion deaktivieren wenn ihr mit dieser arbeitet
