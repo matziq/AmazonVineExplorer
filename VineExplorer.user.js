@@ -240,6 +240,8 @@ let backGroundScanTimeout;
 
 let TimeouteScrollTilesBufferArray = [];
 let BackGroundScanIsRunning = false;
+let databaseInitialized = false;
+const taxFetchInProgress = new Set();
 
 // Make some things accessable from console
 unsafeWindow.ave = {
@@ -248,15 +250,19 @@ unsafeWindow.ave = {
     ],
     config: SETTINGS,
     event: ave_eventhandler,
+    databaseInitialized: () => databaseInitialized,
 };
 
 const database = new DB_HANDLER(DATABASE_NAME, DATABASE_OBJECT_STORE_NAME, DATABASE_VERSION, (res, err) => {
     if (err) {
         console.warn(`⚠️ Database initialization failed - some features may not work properly`);
         console.warn(`⚠️ Tax display and basic features will still function`);
+        console.warn(err);
         // Don't return - continue with basic functionality
+    } else {
+        databaseInitialized = true;
     }
-    
+
     let _execLock = false;
     console.log('Lets Check where we are....');
     if (SITE_IS_VINE){
@@ -544,14 +550,18 @@ async function parseTileData(tile) {
         const _id = tile.getAttribute('data-recommendation-id');
 
         // Handle case where database is not initialized
-        const dbPromise = database && database.get ? database.get(_id).catch(() => null) : Promise.resolve(null);
+        const dbPromise = (databaseInitialized && database && database.get)
+            ? database.get(_id).catch(() => null)
+            : Promise.resolve(null);
         
         dbPromise.then((_ret) => {
             if (_ret) {
                 _ret.gotFromDB = true;
                 _ret.ts_lastSeen = unixTimeStamp();
                 if (SETTINGS.DebugLevel > 14) console.log(`parseTileData(): got DB Entry`);
-                if (database && database.update) database.update(_ret);
+                if (databaseInitialized && database && database.update) {
+                    database.update(_ret).catch((error) => console.warn('DB update failed during parseTileData()', error));
+                }
                 resolve(_ret);
             } else {
                 //We have to wait for a lot of Stuff
@@ -660,13 +670,19 @@ function addLeftSideButtons(forceClean) {
     const _setAllSeenDBBtn = createButton('Mark all as seen','ave-btn-db-allseen', `left: 0; width: 240px; background-color: ${SETTINGS.BtnColorMarkAllAsSeen};`, () => {
 
         if (SETTINGS.DebugLevel > 10) console.log('Clicked All Seen Button');
+        if (!databaseInitialized) {
+            console.warn('Cannot mark all as seen: database not initialized');
+            return;
+        }
         setTimeout(() => {
             database.getAll().then((prodsArr) => {
                 const _prodsArryLength = prodsArr.length;
                 for (let i = 0; i < _prodsArryLength; i++) {
                     const _currProd = prodsArr[i];
                     _currProd.isNew = false;
-                    database.update(_currProd);
+                    if (databaseInitialized) {
+                        database.update(_currProd);
+                    }
                 }
             })
         }, 30);
@@ -694,6 +710,11 @@ function addLeftSideButtons(forceClean) {
 }
 
 function markAllCurrentSiteProductsAsSeen(cb = () => {}) {
+    if (!databaseInitialized) {
+        console.warn('markAllCurrentSiteProductsAsSeen skipped: database not initialized');
+        cb();
+        return;
+    }
     const _tiles = document.getElementsByClassName('vvp-item-tile');
     const _tilesLength = _tiles.length;
 
@@ -714,6 +735,11 @@ function markAllCurrentSiteProductsAsSeen(cb = () => {}) {
 
 function markAllCurrentDatabaseProductsAsSeen(cb = () => {}) {
     if (SETTINGS.DebugLevel > 10) console.log('Called markAllCurrentDatabaseProductsAsSeen()');
+    if (!databaseInitialized) {
+        console.warn('markAllCurrentDatabaseProductsAsSeen skipped: database not initialized');
+        cb(true);
+        return;
+    }
     database.getNewEntries().then((prods) => {
         const _prodsLength = prods.length;
         let _returned = 0;
@@ -904,17 +930,48 @@ ${newUrl}`
     }
 }
 
+function normalizeTaxValue(rawValue) {
+    if (typeof rawValue === 'number') {
+        return Number.isFinite(rawValue) ? rawValue : null;
+    }
+
+    if (typeof rawValue === 'string') {
+        let cleaned = rawValue.trim();
+        cleaned = cleaned.replace(/[^0-9,.-]/g, '');
+
+        // If value uses comma as decimal separator and no dot is present, swap comma for dot
+        if (cleaned.includes(',') && !cleaned.includes('.')) {
+            cleaned = cleaned.replace(',', '.');
+        } else {
+            cleaned = cleaned.replace(/,/g, '');
+        }
+
+        const parsed = parseFloat(cleaned);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+}
+
+function getCurrencySymbol(currencyCode) {
+    switch (currencyCode) {
+        case 'EUR':
+            return '€';
+        case 'GBP':
+            return '£';
+        case 'USD':
+            return '$';
+        default:
+            return '$';
+    }
+}
+
 function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     console.log('🔵 [TAX DISPLAY] Called createTaxInfo() for product:', prod.data_asin);
     
-    const _prize = prod.data_estimated_tax_prize;
-    console.log('🔵 [TAX DISPLAY] Tax prize value:', _prize, '| Type:', typeof(_prize));
-    let _currencySymbol = '$'; // Default to USD
-    if (prod.data_tax_currency) {
-        if (prod.data_tax_currency == 'EUR') _currencySymbol = '€';
-        else if (prod.data_tax_currency == 'GBP') _currencySymbol = '£';
-        else if (prod.data_tax_currency == 'USD') _currencySymbol = '$';
-    }
+    const normalizedTax = normalizeTaxValue(prod.data_estimated_tax_prize);
+    console.log('🔵 [TAX DISPLAY] Tax prize value:', prod.data_estimated_tax_prize, '| Normalized:', normalizedTax);
+    const _currencySymbol = getCurrencySymbol(prod.data_tax_currency);
 
     const _taxElement = document.createElement('span');
     _taxElement.setAttribute("id", `ave-taxinfo-${index}`);
@@ -926,9 +983,9 @@ function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     _taxElement_span.classList.add('ave-taxinfo-text');
     
     // Display value if available, otherwise show placeholder that will be updated by background scanner
-    if (typeof(_prize) === 'number' && _prize !== 0) {
-        console.log('🔵 [TAX DISPLAY] We have a tax price of: ', _prize);
-        _taxElement_span.innerText = `Tax Price: ${_currencySymbol}${_prize}`;
+    if (normalizedTax !== null) {
+        console.log('🔵 [TAX DISPLAY] We have a tax price of: ', normalizedTax);
+        _taxElement_span.innerText = `Tax Price: ${_currencySymbol}${normalizedTax.toFixed(2)}`;
     } else {
         console.log('🔵 [TAX DISPLAY] No tax price yet, showing placeholder');
         _taxElement_span.innerText = `Tax Price: ${_currencySymbol}--.--`;
@@ -1230,6 +1287,10 @@ function btnEventhandlerClick(event, data) {
     if (lastBtnEventhandlerClickTimeStamp + 1000 >= Date.now()) return;
     lastBtnEventhandlerClickTimeStamp = Date.now();
     if (SETTINGS.DebugLevel > 10) console.log(`called btnEventhandlerClick(${JSON.stringify(event)}, ${JSON.stringify(data)})`);
+    if (!databaseInitialized) {
+        console.warn('btnEventhandlerClick skipped: database not initialized');
+        return;
+    }
     if (data.recommendation_id) {
         database.get(data.recommendation_id).then(async (prod) => {
             if (SETTINGS.DebugLevel > 10) console.log(`btnEventhandlerClick() got respose from DB:`, prod);
@@ -1247,6 +1308,10 @@ function btnEventhandlerClick(event, data) {
 
 function favStarEventhandlerClick(event, data) {
     if (SETTINGS.DebugLevel > 10) console.log(`called favStarEventhandlerClick(${JSON.stringify(event)}, ${JSON.stringify(data)})`);
+    if (!databaseInitialized) {
+        console.warn('favStarEventhandlerClick skipped: database not initialized');
+        return;
+    }
     if (data.recommendation_id) {
         database.get(data.recommendation_id).then((prod) => {
             if (SETTINGS.DebugLevel > 10) console.log(`favStarEventhandlerClick() got respose from DB:`, prod);
@@ -1281,17 +1346,12 @@ function updateTileStyle(prod) {
             const _favStar = _tile.querySelector('.ave-favorite-star');
             _favStar.style.color = (prod.isFav) ? SETTINGS.FavStarColorChecked : 'white'; // SETTINGS.FavStarColorChecked = Gelb;
 
-            const _taxValue = prod.data_estimated_tax_prize;
-            if (typeof(_taxValue) == 'number' && _taxValue !== 0) {
+            const normalizedTax = normalizeTaxValue(prod.data_estimated_tax_prize);
+            if (normalizedTax !== null) {
                 const _taxValueElem = _tile.querySelector('.ave-taxinfo-text');
                 if (_taxValueElem) {
-                    let _currencySymbol = '$'; // Default to USD
-                    if (prod.data_tax_currency) {
-                        if (prod.data_tax_currency == 'EUR') _currencySymbol = '€';
-                        else if (prod.data_tax_currency == 'GBP') _currencySymbol = '£';
-                        else if (prod.data_tax_currency == 'USD') _currencySymbol = '$';
-                    }
-                    _taxValueElem.innerText = `Tax Price: ${_currencySymbol}${_taxValue}`;
+                    const _currencySymbol = getCurrencySymbol(prod.data_tax_currency);
+                    _taxValueElem.innerText = `Tax Price: ${_currencySymbol}${normalizedTax.toFixed(2)}`;
                 }
             }
             return;
@@ -2228,6 +2288,11 @@ unsafeWindow.ave.dbCleanup = cleanUpDatabase;
 function exportDatabase() {
     console.log('Create Database Dump...');
 
+    if (!databaseInitialized) {
+        console.warn('Export skipped: database not initialized');
+        return;
+    }
+
     database.getAll().then((db) => {
         try{
             console.log("Creating db export JSON as BLOB (uncompressed)");
@@ -2249,6 +2314,10 @@ function exportDatabase() {
  * @returns {Promise<void>}
  */
 async function importDatabase() {
+    if (!databaseInitialized) {
+        console.warn('Import skipped: database not initialized');
+        return Promise.reject('Database not initialized');
+    }
     return new Promise((resolve, reject) => {
         // Create an input element of type "file"
         const fileInput = document.createElement('input');
@@ -2266,10 +2335,12 @@ async function importDatabase() {
                     // Assuming that the `database` object has a method like `add` to insert data
                     // Adjust this part based on the actual methods provided by your database object
                     for (const data of jsonData) {
-                        const existingRecord = await database.get(data.id);
+                        const existingRecord = databaseInitialized ? await database.get(data.id) : null;
 
                         if (!existingRecord) {
-                            await database.add(data);
+                            if (databaseInitialized) {
+                                await database.add(data);
+                            }
                         } else {
                             console.warn(`Record with ID ${data.id} already exists. Skipping.`);
                         }
@@ -2395,6 +2466,13 @@ function initBackgroundScan() {
                     }
                     case 2: {   // Query about other values (tax, real price, ....) ~ 20 - 30 Products then loop over to stage 1
                         if (SETTINGS.DebugLevel > 10) console.log('initBackgroundScan().loop.case.2 with _subStage: ', _subStage);
+                        if (!databaseInitialized) {
+                            if (SETTINGS.DebugLevel > 10) console.log('initBackgroundScan().loop.case.2 skipped - database not initialized');
+                            _subStage = 0;
+                            _backGroundScanStage++;
+                            _scanFinished();
+                            break;
+                        }
                         database.getAll().then((products) => {
                             const _needUpdate = [];
                             const _randCount = Math.round(Math.random() * 4);
@@ -2409,9 +2487,12 @@ function initBackgroundScan() {
                             const _promises = [];
 
                             for (const _prod of _needUpdate) {
-                                requestProductDetails(_prod).then((_newProd) => {
-                                    _promises.push(database.update(_newProd));
+                                const updatePromise = requestProductDetails(_prod).then((_newProd) => {
+                                    return database.update(_newProd).then(() => {
+                                        updateTileStyle(_newProd);
+                                    });
                                 });
+                                _promises.push(updatePromise);
                             }
 
                             Promise.all(_promises).then(() => {
@@ -2474,7 +2555,9 @@ function backGroundTileScanner(url, cb) {
                     _tilesProm.push(parseTileData(_tiles[i]).then((prod) => {
                         _returned++;
                         if (SETTINGS.DebugLevel > 14) console.log(`BACKGROUNDSCAN => Got TileData Back: Tile ${_returned}/${_tilesLength} =>`, prod);
-                        if (!prod.gotFromDB) database.add(prod);
+                        if (!prod.gotFromDB && databaseInitialized && database && database.add) {
+                            database.add(prod).catch((error) => console.warn('DB add failed in backGroundTileScanner()', error));
+                        }
 
                     }))
                 }
@@ -2699,7 +2782,9 @@ function addStyleToTile(_currTile, _product) {
     console.log('🟢 [TILE STYLE] Called addStyleToTile for product:', _product.data_asin);
 
     if (!_product.gotFromDB) { // We have a new one ==> Save it to our Database ;)
-        if (database && database.add) database.add(_product);
+        if (databaseInitialized && database && database.add) {
+            database.add(_product).catch((error) => console.warn('DB add failed in addStyleToTile()', error));
+        }
         _currTile.style.cssText = SETTINGS.CssProductSaved;
         _currTile.classList.add('ave-element-saved');
     } else {
@@ -2732,8 +2817,39 @@ function addStyleToTile(_currTile, _product) {
         const existingTaxElements = _currTile.querySelectorAll('.ave-taxinfo');
         existingTaxElements.forEach((node) => node.remove());
         insertHtmlElementAfter(_elem, createTaxInfoElement(_product));
+        loadTaxDetailsIfMissing(_product);
     }, _currTile)
 
+}
+
+function loadTaxDetailsIfMissing(prod) {
+    if (!prod) return;
+
+    const normalizedTax = normalizeTaxValue(prod.data_estimated_tax_prize);
+    if (normalizedTax !== null) return;
+
+    const recommendationId = prod.data_recommendation_id || prod.id;
+
+    if (!recommendationId || !prod.data_asin) return;
+    if (taxFetchInProgress.has(recommendationId)) return;
+
+    taxFetchInProgress.add(recommendationId);
+
+    requestProductDetails(prod).then((updatedProd) => {
+        taxFetchInProgress.delete(recommendationId);
+
+        const updatedTax = normalizeTaxValue(updatedProd.data_estimated_tax_prize);
+        if (updatedTax === null) return;
+
+        if (databaseInitialized && database && database.update) {
+            database.update(updatedProd).catch((error) => console.warn('DB update failed in loadTaxDetailsIfMissing()', error));
+        }
+
+        updateTileStyle(updatedProd);
+    }).catch((error) => {
+        taxFetchInProgress.delete(recommendationId);
+        console.warn('Failed to fetch tax details for product', recommendationId, error);
+    });
 }
 
 /**
@@ -2914,7 +3030,8 @@ async function requestProductDetails(prod) {
                 console.log('DATA:', _data)
                 prod.data_childs = _data.variations || [];
                 const _promArray = new Array();
-                prod.data_estimated_tax_prize = prod.data_estimated_tax_prize || 0;
+                const initialTax = normalizeTaxValue(prod.data_estimated_tax_prize);
+                prod.data_estimated_tax_prize = initialTax !== null ? initialTax : 0;
                 for (_child of prod.data_childs) {
                     _promArray.push(fetch(`${window.location.origin}/vine/api/recommendations/${(prod.id).replace(/#/g, '%23')}/item/${_child.asin}`.replace(/#/g, '%23')).then(r => r.json()).then((childData) => {
                         console.log('CHILD_DATA:', childData);
@@ -2928,9 +3045,15 @@ async function requestProductDetails(prod) {
                             // Diagnostic logging for child tax value
                             console.log('[TAX DEBUG] Child ASIN:', _child.asin, '| taxValue:', _child.taxValue, '| Type:', typeof(_child.taxValue));
 
-                            if (prod.data_estimated_tax_prize < _child.taxValue) {
-                                prod.data_estimated_tax_prize = _child.taxValue;
-                                prod.data_tax_currency = _child.taxCurrency;
+                            const childTaxValue = normalizeTaxValue(_child.taxValue);
+                            if (childTaxValue !== null) {
+                                _child.taxValue = childTaxValue;
+                                if (prod.data_estimated_tax_prize < childTaxValue) {
+                                    prod.data_estimated_tax_prize = childTaxValue;
+                                    if (_child.taxCurrency) {
+                                        prod.data_tax_currency = _child.taxCurrency;
+                                    }
+                                }
                             }
                         }
                     }))
@@ -2950,8 +3073,9 @@ async function requestProductDetails(prod) {
                     prod.data_feature_bullets = data.featureBullets;
                     prod.data_contributors = data.byLineContributors;
                     prod.data_catalogSize = data.catalogSize;
-                    prod.data_tax_currency = data.taxCurrency;
-                    prod.data_estimated_tax_prize = data.taxValue;
+                    prod.data_tax_currency = data.taxCurrency || prod.data_tax_currency;
+                    const normalizedTax = normalizeTaxValue(data.taxValue);
+                    prod.data_estimated_tax_prize = normalizedTax !== null ? normalizedTax : prod.data_estimated_tax_prize;
                     prod.data_limited_quantity = data.limitedQuantity;
                     
                     // Diagnostic logging for tax value

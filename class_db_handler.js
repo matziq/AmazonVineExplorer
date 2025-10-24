@@ -21,7 +21,9 @@ class DB_HANDLER {
         this.#dbName = dbName;
         this.#version = version || 1;
         this.#storeName = storeName || dbName + '_ObjectStore';
-        this.#init().then(cb).catch(cb(null, true));
+        this.#init()
+            .then((result) => cb(result, null))
+            .catch((err) => cb(null, err));
     }
 
     /**
