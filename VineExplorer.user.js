@@ -2672,6 +2672,7 @@ function createNavButton(mainID, text, textID, color, onclick, badgeId, badgeVal
 
 
 function addStyleToTile(_currTile, _product) {
+    console.log('🟢 [TILE STYLE] Called addStyleToTile for product:', _product.data_asin);
 
     if (!_product.gotFromDB) { // We have a new one ==> Save it to our Database ;)
         database.add(_product);
@@ -2693,8 +2694,10 @@ function addStyleToTile(_currTile, _product) {
     }
     _currTile.prepend(createFavStarElement(_product));
     _currTile.prepend(createShareElement(_product));
+    console.log('🟢 [TILE STYLE] About to wait for title container to add tax info...');
     // insertHtmlElementAfter((_currTile.getElementsByClassName('vvp-item-product-title-container')[0]), createTaxInfoElement(_product));
     waitForHtmlElmement('.vvp-item-product-title-container', (_elem) => {
+        console.log('🟢 [TILE STYLE] Title container found! Creating tax element...');
         insertHtmlElementAfter(_elem, createTaxInfoElement(_product));
     }, _currTile)
 
