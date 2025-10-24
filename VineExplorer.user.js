@@ -2771,9 +2771,20 @@ unsafeWindow.AVE_testTaxAPI = window.AVE_testTaxAPI = async function() {
     if (!btn) {
         btn = tile.querySelector('[data-recommendation-id]');
     }
+    if (!btn) {
+        // Look for Amazon's native "See details" button
+        const seeDetailsBtn = Array.from(tile.querySelectorAll('button, input[type="submit"], .a-button')).find(el => 
+            el.textContent?.includes('See details') || el.textContent?.includes('More details')
+        );
+        if (seeDetailsBtn) {
+            btn = seeDetailsBtn;
+        }
+    }
     
     if (!btn) {
-        console.error('No details button found in tile. Tile HTML:', tile.innerHTML.substring(0, 500));
+        console.error('No details button found in tile.');
+        console.log('Available buttons:', tile.querySelectorAll('button, input, .a-button'));
+        console.log('Tile HTML snippet:', tile.innerHTML.substring(0, 500));
         console.log('💡 Trying to extract data from tile directly...');
         
         // Try to get ASIN from the tile's data attributes or links
@@ -2783,20 +2794,28 @@ unsafeWindow.AVE_testTaxAPI = window.AVE_testTaxAPI = async function() {
             if (asinMatch) {
                 const asin = asinMatch[1];
                 console.log('Found ASIN from product link:', asin);
-                console.log('⚠️ Cannot get recommendation ID without the button. Please provide it manually or wait for products to fully load.');
+                console.log('⚠️ Cannot get recommendation ID from link alone.');
+                console.log('💡 Try clicking "See details" on a product first, then run this test again.');
                 return;
             }
         }
         return;
     }
     
-    const asin = btn.getAttribute('data-asin');
-    const recId = btn.getAttribute('data-recommendation-id');
-    const isParent = btn.getAttribute('data-is-parent-asin') === 'true';
+    const asin = btn.getAttribute('data-asin') || btn.dataset?.asin;
+    const recId = btn.getAttribute('data-recommendation-id') || btn.dataset?.recommendationId;
+    const isParent = (btn.getAttribute('data-is-parent-asin') || btn.dataset?.isParentAsin) === 'true';
     
     console.log('Product ASIN:', asin);
     console.log('Recommendation ID:', recId);
     console.log('Is Parent ASIN:', isParent);
+    
+    if (!asin || !recId) {
+        console.error('Missing required data. ASIN:', asin, 'RecID:', recId);
+        console.log('Button found:', btn);
+        console.log('Button attributes:', Array.from(btn.attributes || []).map(a => `${a.name}="${a.value}"`).join(', '));
+        return;
+    }
     
     // Test the API endpoint
     const apiUrl = `${window.location.origin}/vine/api/recommendations/${recId}/item/${asin}`;
