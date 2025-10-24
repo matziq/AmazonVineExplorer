@@ -1315,6 +1315,12 @@ function addTileEventhandlers(_currTile) {
     console.log('Tile Event Handler');
     // const _favStar = _currTile.querySelector('.ave-favorite-star');
     const _btn = _currTile.querySelector('.vvp-details-btn input');
+    
+    // Exit early if button not found (defensive coding)
+    if (!_btn) {
+        if (SETTINGS.DebugLevel > 10) console.log('addTileEventhandlers: Button not found in tile');
+        return;
+    }
 
     const _data = new Object()
     _data.asin = _btn.getAttribute('data-asin');

@@ -59,6 +59,11 @@ class AVE_EVENTHANDLER {
 const ave_eventhandler = new AVE_EVENTHANDLER();
 
 function addBranding() {
+    // Exit early if document.body doesn't exist yet
+    if (!document.body) {
+        console.log('[AVE] Branding skipped - body not ready yet');
+        return;
+    }
 
     const _oldElem = document.getElementById('ave-branding-text');
     if (_oldElem) _oldElem.remove();
