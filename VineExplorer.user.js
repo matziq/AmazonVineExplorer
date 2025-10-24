@@ -2520,6 +2520,124 @@ function addStyleToTile(_currTile, _product) {
 
 }
 
+/**
+ * Attempts to scrape tax value from Amazon's product details modal
+ * @param {string} asin - Product ASIN
+ * @param {string} recommendationId - Recommendation ID
+ * @returns {Promise<Object>} Object with taxValue and taxCurrency if found
+ */
+async function scrapeTaxFromModal(asin, recommendationId) {
+    return new Promise((resolve, reject) => {
+        console.log('[TAX SCRAPER] Attempting to scrape tax data for ASIN:', asin);
+        
+        // Monitor for modal to open
+        const observer = new MutationObserver((mutations) => {
+            const modal = document.querySelector('.a-popover-modal, [role="dialog"]');
+            if (modal) {
+                console.log('[TAX SCRAPER] Modal detected, searching for tax info...');
+                
+                // Wait a bit for content to load
+                setTimeout(() => {
+                    // Look for "Estimated Taxable Value" text in the modal
+                    const modalText = modal.innerText || modal.textContent;
+                    const taxMatch = modalText.match(/Estimated Taxable Value[:\s]*\$?([\d.]+)/i);
+                    
+                    if (taxMatch && taxMatch[1]) {
+                        const taxValue = parseFloat(taxMatch[1]);
+                        console.log('[TAX SCRAPER] Found tax value:', taxValue);
+                        observer.disconnect();
+                        resolve({ taxValue: taxValue, taxCurrency: 'USD' }); // Adjust currency as needed
+                    } else {
+                        console.log('[TAX SCRAPER] Tax value not found in modal');
+                        observer.disconnect();
+                        resolve({ taxValue: null, taxCurrency: null });
+                    }
+                }, 500);
+            }
+        });
+        
+        // Start observing
+        observer.observe(document.body, { 
+            childList: true, 
+            subtree: true 
+        });
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+            observer.disconnect();
+            console.log('[TAX SCRAPER] Timeout - modal scraping failed');
+            reject('Timeout waiting for modal');
+        }, 5000);
+    });
+}
+
+/**
+ * Diagnostic function to test Amazon Vine API tax value retrieval
+ * Usage: Call AVE_testTaxAPI() in the browser console
+ */
+window.AVE_testTaxAPI = async function() {
+    console.log('=== Amazon Vine Tax API Diagnostic ===');
+    
+    // Get first product tile
+    const tile = document.querySelector('.vvp-item-tile');
+    if (!tile) {
+        console.error('No product tiles found on page. Navigate to a Vine page with products.');
+        return;
+    }
+    
+    const btn = tile.querySelector('.vvp-details-btn input');
+    if (!btn) {
+        console.error('No details button found in tile.');
+        return;
+    }
+    
+    const asin = btn.getAttribute('data-asin');
+    const recId = btn.getAttribute('data-recommendation-id');
+    const isParent = btn.getAttribute('data-is-parent-asin') === 'true';
+    
+    console.log('Product ASIN:', asin);
+    console.log('Recommendation ID:', recId);
+    console.log('Is Parent ASIN:', isParent);
+    
+    // Test the API endpoint
+    const apiUrl = `${window.location.origin}/vine/api/recommendations/${recId}/item/${asin}`;
+    console.log('API URL:', apiUrl);
+    
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        console.log('=== API Response ===');
+        console.log('Full response:', data);
+        
+        if (data.error) {
+            console.error('API Error:', data.error);
+        } else if (data.result) {
+            console.log('--- Tax-Related Fields ---');
+            console.log('taxValue:', data.result.taxValue, '(Type:', typeof(data.result.taxValue) + ')');
+            console.log('taxCurrency:', data.result.taxCurrency);
+            
+            if (data.result.taxValue === null || data.result.taxValue === undefined) {
+                console.warn('⚠️ API is NOT returning tax values!');
+                console.log('💡 The API may be broken or Amazon disabled this field.');
+            } else if (typeof(data.result.taxValue) === 'number' && data.result.taxValue > 0) {
+                console.log('✅ Tax value successfully retrieved:', data.result.taxValue);
+            } else {
+                console.warn('⚠️ Tax value is 0 or invalid type');
+            }
+            
+            console.log('--- Other Available Fields ---');
+            console.log('Available keys:', Object.keys(data.result));
+        }
+    } catch (error) {
+        console.error('Failed to fetch from API:', error);
+    }
+    
+    console.log('=== End Diagnostic ===');
+};
+
+console.log('💡 Tax API diagnostic tool loaded. Run AVE_testTaxAPI() in console to test.');
+
 
 async function requestProductDetails(prod) {
     return new Promise(async (resolve, reject) => {
@@ -2549,6 +2667,9 @@ async function requestProductDetails(prod) {
                                 _child[_datapoint] = childData.result[_datapoint];
                             }
 
+                            // Diagnostic logging for child tax value
+                            console.log('[TAX DEBUG] Child ASIN:', _child.asin, '| taxValue:', _child.taxValue, '| Type:', typeof(_child.taxValue));
+
                             if (prod.data_estimated_tax_prize < _child.taxValue) {
                                 prod.data_estimated_tax_prize = _child.taxValue;
                                 prod.data_tax_currency = _child.taxCurrency;
@@ -2574,6 +2695,10 @@ async function requestProductDetails(prod) {
                     prod.data_tax_currency = data.taxCurrency;
                     prod.data_estimated_tax_prize = data.taxValue;
                     prod.data_limited_quantity = data.limitedQuantity;
+                    
+                    // Diagnostic logging for tax value
+                    console.log('[TAX DEBUG] Product:', prod.data_asin, '| taxValue:', data.taxValue, '| taxCurrency:', data.taxCurrency, '| Type:', typeof(data.taxValue));
+                    
                     resolve(prod);
                 }
             })
