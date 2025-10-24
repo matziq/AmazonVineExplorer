@@ -103,21 +103,21 @@ Click the ⚙️ Settings button in the left navigation to access:
 
 For complete configuration details, see [USER_GUIDE.md](USER_GUIDE.md)
 
-## Notice:
-The Script has currently some issues processing the Tax Value.
-We are aware of the issue and are working on a fix.
-
 ## Changelog:
 
 ##### [October 2025] - Version 0.11.0 (English UI Release)
 * **Complete English Translation** - All UI elements, settings, comments, and messages translated to English
+* **Fixed: Tax Value Display** - Re-enabled background tax scanner, Amazon API confirmed working
+* Changed: Tax display shows "Estimated Taxable Value" instead of "Tax Price"
 * Changed: Renamed all `Notifikation` variables to `Notification` for consistency
 * Changed: Translated all German comments and documentation to English
 * Changed: Updated function names (`desktopNotifikation` → `desktopNotification`)
 * Changed: Translated versioning comments and TODO items
 * Added: Comprehensive documentation (USER_GUIDE.md, DEVELOPER_GUIDE.md, INSTALLATION.md)
+* Added: Tax API diagnostic tool (AVE_testTaxAPI) for testing
 * Improved: Code comments and JSDoc annotations
 * Fixed: Console message translations
+* Fixed: fetchfix.js injection using textContent instead of innerHTML
 
 ##### [28.06.2024] - Version 0.10.9.0.1
 * Little Bugfix to work with an external Partner
