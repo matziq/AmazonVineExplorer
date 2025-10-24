@@ -714,6 +714,15 @@ ${newUrl}`
 
 function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     console.log('Called createTaxInfo()');
+    
+    // Tax fetching is currently disabled due to API issues
+    // Only display if we actually have a valid tax value
+    const _prize = prod.data_estimated_tax_prize;
+    if (typeof(_prize) !== 'number' || _prize === 0) {
+        // Return empty element if no valid tax data
+        return document.createElement('span');
+    }
+    
     let _currencySymbol = '';
     if (prod.data_tax_currency && prod.data_tax_currency == 'EUR') _currencySymbol = '€';
 
@@ -724,9 +733,8 @@ function createTaxInfoElement(prod, index = Math.round(Math.random()* 10000)) {
     const _taxElement_span = document.createElement('span');
     _taxElement_span.setAttribute("id", `ave-taxinfo-${index}-text`);
     _taxElement_span.classList.add('ave-taxinfo-text');
-    const _prize = prod.data_estimated_tax_prize;
     console.log('Called createTaxInfo(): We have a Taxprize of: ', _prize);
-    _taxElement_span.innerText = `Tax Price: ${(typeof(_prize) == 'number') ? _prize :'--.--'} ${_currencySymbol}`;
+    _taxElement_span.innerText = `Tax Price: ${_prize} ${_currencySymbol}`;
     console.log('createTaxInfo(): After innerText');
 
     _taxElement.appendChild(_taxElement_span);
