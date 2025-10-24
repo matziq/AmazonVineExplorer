@@ -24,8 +24,8 @@
 
 // External Source
 // @require      https://raw.githubusercontent.com/eligrey/FileSaver.js/v2.0.4/src/FileSaver.js
-// Temporarily disabled due to Tampermonkey caching - fetchfix code embedded below
-// @require      https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/fetchfix.js
+// Temporarily disabled due to Tampermonkey caching - fetchfix code embedded below (line 31)
+// DISABLED: @require      https://raw.githubusercontent.com/matziq/AmazonVineExplorer/i18n/english-ui/fetchfix.js
 // ==/UserScript==
 
 // ===== EMBEDDED FETCHFIX (temporary workaround for Tampermonkey caching) =====
